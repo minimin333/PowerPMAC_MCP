@@ -1,0 +1,9 @@
+bin/
+obj/
+*.out
+*.err
+b.txt
+c.txt
+live-out.txt
+live-err.txt
+_decomp/

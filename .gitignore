@@ -1,0 +1,19 @@
+# --- Licensed / large inputs (distributed separately, not committed) ---
+/Power PMAC Manual/
+/PPMAC_Project_Sample/
+
+# --- Build outputs ---
+**/bin/
+**/obj/
+
+# --- Skill: raw manual corpus + firmware originals (reproducible locally) ---
+/Skills/powerpmac-dev/reference/raw/
+/Skills/powerpmac-dev/reference/firmware/headers/
+/Skills/powerpmac-dev/reference/firmware/pp_swtbl*.txt
+/Skills/powerpmac-dev/reference/firmware/ppstruct*.txt
+
+# --- misc ---
+*.user
+*.suo
+.vs/
+*.tmp

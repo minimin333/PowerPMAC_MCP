@@ -1,0 +1,15 @@
+# PDF originals are large and licensed — do NOT commit. Distributed separately.
+/reference/raw/**/*.txt
+/reference/raw/_INDEX.md
+*.pdf
+
+# Keep the extractor and a note so the corpus is reproducible
+!tools/extract_pdfs.py
+
+# Firmware originals (copyrighted headers + intellisense tables) — repopulate locally from
+# the simulator/controller opt/ppmac. Keep the DISTILLED outputs (ELEMENTS_INDEX.md, ../c-api.md).
+/reference/firmware/headers/
+/reference/firmware/pp_swtbl*.txt
+/reference/firmware/ppstruct*.txt
+!reference/firmware/ELEMENTS_INDEX.md
+!tools/gen_element_index.py

@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <!-- PDK DLLs (cygwin1, ODT.*, PPMAC460CompileTask, Renci.SshNet) are all x86.
+         The host process MUST be 32-bit or native loads fail. -->
+    <PlatformTarget>x86</PlatformTarget>
+    <Prefer32Bit>true</Prefer32Bit>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>powerpmac-mcp</AssemblyName>
+    <RootNamespace>PowerPmacMcp</RootNamespace>
+    <Nullable>disable</Nullable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <!-- Location of the PDK runtime DLLs + license, referenced IN PLACE (not copied).
+         Override at build or runtime with the POWERPMAC_PDK_HOME env var. -->
+    <PdkHome Condition="'$(PdkHome)'==''">C:\Cloude_Code\PowerPMAC_MCP\Power PMAC Manual\PDK_Reference</PdkHome>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <!-- Lets the dotnet SDK build net48 with only the 4.8 runtime installed. -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Copy the PDK managed assemblies (+ their transitive deps, incl. PPMAC460CompileProcess)
+       into our output dir, exactly like the official PmacBuilder sample. The MSBuild CompileTask
+       is loaded from the executing assembly's directory, so it MUST sit beside our exe.
+       The heavy NATIVE runtime (cygwin1, DKeyLib, license) is still used in place via PdkHome. -->
+  <ItemGroup>
+    <Reference Include="ODT.Common">
+      <HintPath>$(PdkHome)\ODT.Common.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="ODT.PowerPmacBuildAndDownload">
+      <HintPath>$(PdkHome)\ODT.PowerPmacBuildAndDownload.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="ODT.PowerPmacComLib">
+      <HintPath>$(PdkHome)\ODT.PowerPmacComLib.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="PPMAC460CompileTask">
+      <HintPath>$(PdkHome)\PPMAC460CompileTask.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
+</Project>

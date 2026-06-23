@@ -1,0 +1,117 @@
+// Power PMAC Script PLC examples
+// Harvested verbatim from the Power PMAC Training manual (TRN) unless noted.
+// Reminder (TRN p284): PLCs repeat automatically until disabled; for a
+// "one-shot" PLC, the last line should be "disable plc n". Always use
+// edge-triggered logic when commanding jog/home/motion (TRN p293).
+
+// === Counter PLC: increment a global each scan (source: TRN p287) ===
+// Then "enable plc increment" and watch Counter increment in the Watch Window.
+global Counter = 0;
+open plc increment
+Counter++;
+close
+
+
+// === Non-blocking delay/timer subprogram (source: TRN p292) ===
+// Make a "timer.pmc" Sub Program in PMAC Script Language -> Libraries.
+// Waits a specified duration (seconds) without losing master synchronicity.
+open subprog Timer(duration)
+local EndTime = Sys.Time + duration; // "local" variable to store end time
+while(Sys.Time < EndTime){}
+close
+
+// Call it from any PLC with an argument in seconds:
+// call Timer(0.25); // Wait 0.25 seconds before proceeding
+
+
+// === Edge-triggered (latching) PLC (source: TRN p293) ===
+// Use edge-triggered logic for any command that causes motion, so the
+// command is not dangerously re-sent every scan.
+open plc edgetriggered
+local Latch1 = Input1; // Set initial latch state equal to initial input state
+while(1){
+if(Input1==1){ // If machine input 1 is high
+if(Latch1==0){ // If machine input 1 was previously low
+Output1=1; // Activate machine output 1
+Latch1=1; // Latch internal machine input 1 signal
+}}
+else {if(Latch1==1){ // If machine input 1 is low && previous switch state was high
+Output1=0; // Deactivate machine output 1
+Latch1=0; // Delatch internal machine input 1 signal
+}}}
+close
+
+
+// === One-shot home + jog PLC for Motor #1 (source: TRN p298) ===
+// Homes motor 1, waits for it to finish, then jogs to 2000 cts absolute.
+// Requires the Timer subprogram above.
+open plc jog_home
+home 1; // Home motor 1
+call Timer(0.01); // Wait a small period to force the command to execute
+while(Motor[1].InPos == 0 || Motor[1].HomeComplete == 0){} // Wait to finish
+jog1=2000; // Jog motor 1 to 2000 cts
+call Timer(0.01); // Wait a small period to force the command to execute
+while(Motor[1].InPos == 0){} // Wait to finish
+disable plc jog_home
+close
+
+
+// === Edge-triggered jog PLC with I/O (source: TRN p299) ===
+// Jog Motor #1 forward while machine input 1 is high; closed-loop stop when low.
+open plc jog_io
+Latch1 = Input1;
+while(1)
+{
+if(Input1==1) // Machine input 1 is high
+{
+if(Latch1==0) // Machine input 1 latch was low
+{
+Latch1=1; // Bring machine input 1 latch high
+jog+1; // Jog forward
+}
+}
+else // Machine input 1 is low
+{
+if(Latch1==1) // Machine input 1 was high
+{
+Latch1=0; // Bring machine input latch low
+jog/1; // Stop jogging
+}
+}
+}
+close
+
+
+// === Interactive motor jog PLC (continuous mode) (source: UM p879) ===
+// A single motor selected out of #1-#8 can be jogged in "continuous" mode,
+// positive or negative. Each scan, while the button is pressed, the motor is
+// commanded to jog its "deceleration distance" (V^2/A/2 or V^2*Ta/2) from
+// the present position.
+
+// Declarations of input variables -- application specific
+ptr MotorSelectSw->u.io:$A00000.8.3;
+ptr JogMinusButton->u.io:$A00000.12.1;
+ptr JogPlusButton->u.io:$A00000.13.1;
+global JogDecelDist = 500;
+
+open plc 1
+
+local JogMotor;   // # of motor selected for jogging
+local JogMotorStatus;   // Present state of selected motor
+
+if (JogMotorStatus == 0) {  // No motor jogging?
+  JogMotor = MotorSelectSw + 1; // Read switch to select motor
+  Ldata.Motor = JogMotor;  // Specify motor for jog commands
+}
+if (JogMinusButton && JogMotorStatus <= 0) {
+  jog:(-JogDecelDist);
+  JogMotorStatus = -1;
+}
+else {
+  if (JogPlusButton && JogMotorStatus >= 0) {
+    jog:(JogDecelDist);
+    JogMotorStatus = 1;
+  }
+  else JogMotorStatus = 0;
+}
+close

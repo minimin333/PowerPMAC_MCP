@@ -1,0 +1,115 @@
+// Power PMAC kinematic subroutine examples
+// Harvested verbatim from the Power PMAC User's Manual (UM).
+// Two-axis "shoulder-elbow" robot: upper-arm L1=400mm, lower-arm L2=300mm,
+// both joints 1000 counts/degree. IDE auto-substitutes the Kin* names:
+//   KinPosMotor1 = L1, KinPosMotor2 = L2,
+//   KinPosAxisX = C6, KinPosAxisY = C7, KinAxisUsed = D0, KinVelEna = D0.
+
+// === Recommended forward-kinematic program structure (source: UM p514) ===
+// Double-pass option: second pass via callsub for &xv / &xf velocity queries.
+open forward
+if (KinVelEna > 0) callsub 100;
+KinAxisUsed = {axis mask}
+n100:
+{kinematic calculations}
+return;
+close
+
+
+// === Shoulder-elbow forward kinematics, CS 1 (source: UM p515-516) ===
+// Forward: joint angles (motor counts) -> X,Y tip coordinates (mm).
+//   X = L1*cos(A) + L2*cos(A+B)
+//   Y = L1*sin(A) + L2*sin(A+B)
+
+// Setup for program
+// Auto-assigned variable declarations
+csglobal Len1, Len2;  // Link length variables
+csglobal CtsPerDeg;  // Resolution of both joints
+csglobal FwdKinErr;  // Error flag for routine
+
+&1
+Len1 = 400    // Upper-arm link of 400mm
+Len2 = 300    // Lower-arm link of 300mm
+CtsPerDeg = 1000   // Counts per degree for A and B
+
+// Variable name substitutions (automatically made by IDE)
+//#define KinPosMotor1 L1
+//#define KinPosMotor2 L2
+//#define KinPosAxisX C6
+//#define KinPosAxisY C7
+//#define KinAxisUsed D0
+
+// Forward-kinematic program buffer for repeated execution
+&1
+open forward
+if (KinVelEna) callsub 100;
+KinAxisUsed = $C0   // X and Y axis results
+N100: if (Coord[1].HomeComplete) {  // OK?
+  KinPosAxisX = Len1 * cosd(KinPosMotor1 / CtsPerDeg) +
+      Len2 * cosd((KinPosMotor1 + KinPosMotor2) / CtsPerDeg - 90);
+  KinPosAxisY = Len1 * sind(KinPosMotor1 / CtsPerDeg)+
+      Len2 * sind((KinPosMotor1 + KinPosMotor2) / CtsPerDeg - 90);
+}
+else {    // Not valid; halt operation
+  if (Ldata.Status & 40) { // Called from motion program?
+    Coord[1].ErrorStatus = 255; // User-set aborting error
+  }
+  else {    // Called from axis query
+    KinPosAxisX = sqrt(-1); // Return "not-a-number"
+    KinPosAxisY = sqrt(-1); // Return "not-a-number"
+  }
+}
+return;
+close
+
+
+// === Shoulder-elbow inverse kinematics, CS 1 (source: UM p518-519) ===
+// Inverse: X,Y tip coordinates (mm) -> joint angles (motor counts).
+// "Right-armed" case (positive elbow angle B) only.
+
+// Setup for program
+&1  // Address CS1 for axis definitions
+#1->I  // Motor 1 assigned to inverse kinematic axis in CS 1
+#2->I  // Motor 2 assigned to inverse kinematic axis in CS 1
+
+// Auto-assigned variable declarations
+// (Also uses variables declared in forward-kinematic example)
+csglobal SumLenSqrd   // Len1^2 + Len2^2
+csglobal ProdOfLens   // 2*Len1*Len2
+csglobal DifLenSqrd   // Len1^2 - Len2^2
+csglobal InvKinErr    // Error flag for routine
+
+// Pre-compute additional system constants
+&1
+SumLenSqrd = Len1 * Len1 + Len2 * Len2
+ProdOfLens = 2 * Len1 * Len2
+DifLenSqrd = Len1 * Len1 - Len2 * Len2
+
+// Inverse-kinematic algorithm to be executed repeatedly
+&1
+open inverse    // Open buffer, clear contents
+
+// Declare local variables for routine
+local X2Y2     // X^2 + Y^2
+local Bcos     // cos(Elbow)
+local Bangle    // Elbow angle (deg)
+local AplusC    // Sum of A and C angles (deg)
+local Cangle    // Angle C in triangle (deg)
+local Aangle    // Shoulder angle (deg)
+
+X2Y2 = KinPosAxisX * KinPosAxisX + KinPosAxisY * KinPosAxisY;
+Bcos = (X2Y2 - SumLenSqrd) / ProdOfLens;
+If (abs(Bcos) < 0.9998) {  // Valid solution w/ 1 deg margin?
+    Bangle = acosd(Bcos);
+    AplusC = atan2d(KinPosAxisY, KinPosAxisX);
+    Cangle = acosd((X2Y2 + DifLenSqrd) / (2 * Len1 * sqrt(X2Y2)));
+    Aangle = AplusC - Cangle;
+    KinPosMotor1 = Aangle * CtsPerDeg;
+    KinPosMotor2 = (Bangle + 90) * CtsPerDeg;
+    InvKinErr = 0;
+}
+else {     // Not valid, halt operation
+    InvKinErr = 1;   // Set flag for external use
+    Coord[1].ErrorStatus = 255; // Stop execution
+}
+close
