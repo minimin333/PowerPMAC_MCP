@@ -4,7 +4,8 @@ firmware intellisense tables (pp_swtbl*.txt). Mechanical; no model tokens."""
 import sys, collections, glob, os
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-FW = "reference/firmware"
+# firmware dir relative to this script (<repo>/Skills/powerpmac-dev/tools/) so it works from any cwd
+FW = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "reference", "firmware"))
 struct = collections.defaultdict(set)
 srccount = collections.Counter()
 total = 0

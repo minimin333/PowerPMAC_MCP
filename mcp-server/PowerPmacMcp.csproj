@@ -12,10 +12,20 @@
     <RootNamespace>PowerPmacMcp</RootNamespace>
     <Nullable>disable</Nullable>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <!-- Location of the PDK runtime DLLs + license, referenced IN PLACE (not copied).
-         Override at build or runtime with the POWERPMAC_PDK_HOME env var. -->
-    <PdkHome Condition="'$(PdkHome)'==''">C:\Cloude_Code\PowerPMAC_MCP\Power PMAC Manual\PDK_Reference</PdkHome>
+    <!-- Location of the PDK runtime DLLs + license. setup.ps1 passes the detected path via
+         /p:PdkHome=<path>. For a manual build, it falls back to POWERPMAC_PDK_HOME, then the
+         IDE-bundled PDK (…\PowerPMAC\<ver>\PDK). No machine-specific repo path. -->
+    <PdkHome Condition="'$(PdkHome)'=='' and '$(POWERPMAC_PDK_HOME)'!=''">$(POWERPMAC_PDK_HOME)</PdkHome>
+    <PdkHome Condition="'$(PdkHome)'=='' and Exists('C:\DeltaTau\PowerPMAC\6\PDK\ODT.PowerPmacBuildAndDownload.dll')">C:\DeltaTau\PowerPMAC\6\PDK</PdkHome>
+    <PdkHome Condition="'$(PdkHome)'=='' and Exists('C:\DeltaTau\PowerPMAC\5\PDK\ODT.PowerPmacBuildAndDownload.dll')">C:\DeltaTau\PowerPMAC\5\PDK</PdkHome>
+    <PdkHome Condition="'$(PdkHome)'=='' and Exists('C:\DeltaTau\PowerPMAC\4\PDK\ODT.PowerPmacBuildAndDownload.dll')">C:\DeltaTau\PowerPMAC\4\PDK</PdkHome>
+    <PdkHome Condition="'$(PdkHome)'=='' and Exists('C:\DeltaTau\PowerPMAC\3\PDK\ODT.PowerPmacBuildAndDownload.dll')">C:\DeltaTau\PowerPMAC\3\PDK</PdkHome>
   </PropertyGroup>
+
+  <Target Name="CheckPdkHome" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="'$(PdkHome)'=='' or !Exists('$(PdkHome)\ODT.PowerPmacBuildAndDownload.dll')"
+           Text="PDK not found (PdkHome='$(PdkHome)'). Run setup.ps1, or pass /p:PdkHome=&lt;folder containing ODT.PowerPmacBuildAndDownload.dll&gt;." />
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

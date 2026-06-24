@@ -72,10 +72,9 @@ namespace PowerPmacMcp
             if (string.IsNullOrEmpty(password)) password = "deltatau";
             string projectDir = Path.GetDirectoryName(projectPath);
 
-            string compilers = Environment.GetEnvironmentVariable("POWERPMAC_COMPILERS_HOME");
-            if (string.IsNullOrEmpty(compilers)) compilers = @"C:\DeltaTau\PowerPMAC\Compilers";
-            if (!File.Exists(Path.Combine(compilers, "bin", "rsync.exe")))
-                return new ToolResult("rsync toolchain not found under " + compilers + ".", true);
+            string compilers = PdkRuntime.CompilersHome();
+            if (string.IsNullOrEmpty(compilers))
+                return new ToolResult("rsync/cross-compiler toolchain not found. Install the Power PMAC IDE or set POWERPMAC_COMPILERS_HOME.", true);
 
             string scriptPath = Path.Combine(Path.GetTempPath(), "ppmac_download.cmd");
             string outPath = Path.Combine(Path.GetTempPath(), "ppmac_download.out");

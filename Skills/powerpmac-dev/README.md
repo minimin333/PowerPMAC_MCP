@@ -16,18 +16,17 @@ powerpmac-dev/
   tools/extract_pdfs.py # PDF → raw 코퍼스 재생성 스크립트
 ```
 
-## 팀원 설치
-1. 이 저장소를 클론.
-2. Power PMAC 매뉴얼 PDF 4종을 `../Power PMAC Manual/`에 둔다(별도 배포).
-3. `python tools/extract_pdfs.py` 로 `reference/raw/` 코퍼스를 로컬 생성(grep 검색용).
-4. 스킬을 Claude Code가 인식하도록 배치:
-   - **프로젝트 한정**: 저장소 안 `Skills/`에 두고 해당 프로젝트에서 사용.
-   - **전역**: `~/.claude/skills/powerpmac-dev` 로 심볼릭 링크 또는 클론.
-     ```bash
-     ln -s "$(pwd)/powerpmac-dev" ~/.claude/skills/powerpmac-dev   # macOS/Linux
-     # Windows(관리자 PowerShell):
-     # New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\powerpmac-dev" -Target "<repo>\Skills\powerpmac-dev"
-     ```
+## 설치
+저장소 루트의 **`setup.ps1`**이 이 Skill을 `~/.claude/skills/powerpmac-dev`로 junction 설치한다
+(매뉴얼 없이도 동작 — 정제된 `reference/*.md`가 커밋돼 있음). 자세히는 루트
+[INSTALL.md](../../INSTALL.md) 참고.
+```powershell
+# 저장소 루트에서:
+powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly   # Skill만
+```
+**선택(심층 grep용):** 매뉴얼 전체 텍스트는 미커밋. PDF를 `../../Power PMAC Manual/`에 두고
+`python tools/extract_pdfs.py`(요소 테이블은 `tools/gen_element_index.py`) 실행 시 `reference/raw/`·
+`reference/firmware/` 코퍼스가 로컬 생성된다. 일상 코드 생성엔 불필요.
 
 ## raw 코퍼스를 커밋하지 않는 이유
 매뉴얼 전체 텍스트(3,260p) 재배포는 라이선스상 부담 + repo 비대화. `extract_pdfs.py`로

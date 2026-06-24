@@ -9,7 +9,14 @@ set "IP=%~2"
 set "PW=%~3"
 if "%PW%"=="" set "PW=deltatau"
 
-set "PATH=C:\DeltaTau\PowerPMAC\Compilers\bin;C:\DeltaTau\PowerPMAC\Compilers\usr\local\bin;%PATH%"
+rem  Locate the IDE compilers (rsync/ssh/sshpass): env override -> DTBUILDPATH -> default install.
+if defined POWERPMAC_COMPILERS_HOME (
+  set "PATH=%POWERPMAC_COMPILERS_HOME%\bin;%POWERPMAC_COMPILERS_HOME%\usr\local\bin;%PATH%"
+) else if defined DTBUILDPATH (
+  set "PATH=%DTBUILDPATH%;%PATH%"
+) else (
+  set "PATH=C:\DeltaTau\PowerPMAC\Compilers\bin;C:\DeltaTau\PowerPMAC\Compilers\usr\local\bin;%PATH%"
+)
 set "SSH=ssh -F /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15"
 
 echo === RSYNC %PROJDIR% -^> %IP% ===

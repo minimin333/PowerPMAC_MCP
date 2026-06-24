@@ -6,8 +6,13 @@ import os, re, sys, glob
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 from pypdf import PdfReader
 
-SRC = r"C:\Cloude_Code\PowerPMAC_MCP\Power PMAC Manual"
-OUT = r"C:\Cloude_Code\PowerPMAC_MCP\Skills\powerpmac-dev\reference\raw"
+# Paths are derived from this script's location so it works from any clone:
+#   <repo>/Skills/powerpmac-dev/tools/extract_pdfs.py
+HERE = os.path.dirname(os.path.abspath(__file__))
+SKILL = os.path.dirname(HERE)                          # <repo>/Skills/powerpmac-dev
+REPO = os.path.dirname(os.path.dirname(SKILL))         # <repo>
+SRC = os.environ.get("POWERPMAC_MANUAL_DIR", os.path.join(REPO, "Power PMAC Manual"))
+OUT = os.path.join(SKILL, "reference", "raw")
 CHUNK = 20
 
 MANUALS = {
