@@ -2,6 +2,8 @@
 
 OMRON Delta Tau **Power PMAC** 컨트롤러 개발을 Claude Code로 하기 위한 결과물 2종입니다.
 
+> 📘 **처음 쓰시나요?** 설치부터 사용까지 한 번에 → **[사용자 매뉴얼: docs/manual.md](docs/manual.md)** (HTML·PDF 동봉: `docs/manual.html`, `docs/manual.pdf`)
+
 | 폴더 | 내용 |
 |---|---|
 | `Skills/powerpmac-dev/` | **지식 Skill** — Script/PLC/C 문법, 데이터구조, 함정(gotcha), C-API, 프로젝트 구조, 검증된 스니펫. Claude가 Power PMAC 코드를 정확히 작성·리뷰하게 합니다. |

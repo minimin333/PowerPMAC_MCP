@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power PMAC 개발 도구 사용자 매뉴얼 — Claude Code Skill + MCP</title>
+<style>
+  :root{
+    --fg:#1d2530; --muted:#5a6473; --bg:#ffffff; --soft:#f5f7fa;
+    --accent:#0b6bcb; --accent-soft:#e8f1fc; --border:#d8dee7;
+    --code-bg:#f3f5f8; --code-fg:#173a5e; --warn:#8a5a00; --warn-bg:#fff7e6;
+    --mono:'Cascadia Code','D2Coding',Consolas,'Courier New',monospace;
+    --sans:'Malgun Gothic','Segoe UI','Apple SD Gothic Neo',Pretendard,'Noto Sans KR',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);
+    line-height:1.72;font-size:15.5px;}
+  .doc{max-width:860px;margin:0 auto;padding:40px 34px 64px;}
+
+  .titlecard{border:1px solid var(--border);border-top:5px solid var(--accent);
+    border-radius:10px;background:linear-gradient(180deg,var(--accent-soft),#fff 70%);
+    padding:26px 28px;margin-bottom:10px;}
+  .titlecard h1{margin:0 0 6px;font-size:26px;line-height:1.3;border:0;padding:0;}
+  .titlecard .sub{color:var(--accent);font-weight:600;font-size:15px;margin:0 0 12px;}
+  .titlecard .lede{margin:0;color:var(--muted);font-size:14.5px;}
+  .hint{color:var(--muted);font-size:12.5px;margin:8px 2px 30px;}
+
+  h2{font-size:20px;margin:38px 0 12px;padding-bottom:7px;border-bottom:2px solid var(--border);}
+  h2 .n{display:inline-block;min-width:1.5em;color:var(--accent);font-weight:800;}
+  h3{font-size:16px;margin:22px 0 8px;color:#2a3442;}
+  p{margin:10px 0;}
+  ul,ol{margin:10px 0;padding-left:22px;}
+  li{margin:5px 0;}
+  ul ul{margin:4px 0;}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  strong{color:#11324f;}
+
+  code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);color:var(--code-fg);
+    padding:2px 5px;border-radius:4px;border:1px solid #e3e8ee;white-space:nowrap;}
+  pre{background:#0f1b2d;color:#e7eef7;border-radius:8px;padding:14px 16px;overflow:auto;
+    margin:12px 0;border:1px solid #0b1322;}
+  pre code{background:none;border:0;color:inherit;padding:0;font-size:13px;white-space:pre;}
+
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14px;}
+  th,td{border:1px solid var(--border);padding:8px 11px;text-align:left;vertical-align:top;}
+  thead th{background:var(--accent-soft);color:#0c3a63;font-weight:700;}
+  tbody tr:nth-child(even){background:var(--soft);}
+  td code,th code{white-space:normal;}
+
+  blockquote{margin:12px 0;padding:10px 16px;background:var(--warn-bg);
+    border-left:4px solid #f0c04a;border-radius:0 6px 6px 0;color:#5b4a1f;}
+  blockquote p{margin:4px 0;}
+
+  hr{border:0;border-top:1px solid var(--border);margin:30px 0;}
+  .foot{color:var(--muted);font-size:12.5px;margin-top:8px;}
+
+  @page{margin:14mm 14mm 16mm;}
+  @media print{
+    body{font-size:11.5pt;}
+    .doc{max-width:none;padding:0;}
+    .hint{display:none;}
+    h2{margin-top:22px;}
+    pre,table,blockquote,tr,img{break-inside:avoid;}
+    h2,h3{break-after:avoid;}
+    a{color:var(--fg);}
+  }
+</style>
+</head>
+<body>
+<main class="doc">
+
+  <section class="titlecard">
+    <h1>Power PMAC 개발 도구 사용자 매뉴얼</h1>
+    <p class="sub">Claude Code Skill + MCP — 처음 쓰는 분을 위한 안내서</p>
+    <p class="lede">이 문서 하나로 <strong>설치 → 등록 → 실제 사용</strong>까지 따라 할 수 있습니다.</p>
+  </section>
+  <p class="hint">💡 인쇄 또는 PDF 저장: 브라우저에서 <code>Ctrl</code>+<code>P</code> → 대상 "PDF로 저장". (저장소에 <code>manual.pdf</code> 동봉)</p>
+
+  <h2><span class="n">0.</span>이 문서는</h2>
+  <ul>
+    <li><strong>대상</strong>: Claude Code를 처음 쓰는 Power PMAC 개발자.</li>
+    <li><strong>끝나면 할 수 있는 것</strong>
+      <ul>
+        <li>Claude에게 한국어로 Power PMAC 문법·데이터구조·함정을 물어보고 정확한 답과 코드를 받습니다. → <strong>Skill</strong></li>
+        <li>Claude에게 "프로젝트 빌드해줘", "192.168.0.200에 다운로드해줘", "Motor[1].ActPos 읽어줘"처럼 시켜서 <strong>실제 컨트롤러를 제어</strong>합니다. → <strong>MCP</strong></li>
+      </ul>
+    </li>
+    <li><strong>소요 시간</strong>: 설치 5~10분(+최초 빌드 1회). 이후엔 자연어 대화만.</li>
+  </ul>
+
+  <h2><span class="n">1.</span>Claude Code란?</h2>
+  <p>Claude Code는 <strong>터미널·IDE에서 동작하는 AI 코딩 에이전트</strong>입니다. 채팅하듯 한국어로 지시하면 파일을 읽고·쓰고, 명령을 실행하고, (이 도구를 설치하면) Power PMAC 컨트롤러까지 다룹니다.</p>
+  <ul>
+    <li><strong>설치/실행</strong>: 사내 표준 설치본 또는 공식 안내(<code>claude.com/claude-code</code>)를 따릅니다. 설치 후 터미널에서 <code>claude</code>를 입력하거나 VS Code/IDE 확장으로 실행합니다.</li>
+    <li><strong>핵심 사용법</strong>: <strong>하고 싶은 일을 말로 시키면 됩니다.</strong> Claude가 필요한 도구를 알아서 고르고, 실행 전에 승인을 묻습니다(→ 6장).</li>
+  </ul>
+  <p>이 매뉴얼이 추가로 설치하는 것은 두 가지입니다 — <strong>Skill</strong>(지식)과 <strong>MCP</strong>(컨트롤러 제어).</p>
+
+  <h2><span class="n">2.</span>이 도구가 주는 것</h2>
+  <table>
+    <thead><tr><th>구성</th><th>무엇</th><th>어떻게 쓰나</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Skill</strong> <code>powerpmac-dev</code></td><td>Power PMAC의 Script(모션·PLC)·C 문법, 데이터구조, 자주 틀리는 함정, 프로젝트 구조 지식</td><td>그냥 한국어로 물어보면 자동 적용 — Claude가 정확히 답하고 코드를 작성·리뷰</td></tr>
+      <tr><td><strong>MCP</strong> <code>powerpmac</code></td><td>PC에서 프로젝트 <strong>빌드</strong>, 컨트롤러로 <strong>다운로드</strong>, <strong>라이브 gpascii·셸</strong> 명령</td><td>"빌드해줘 / 다운로드해줘 / 값 읽어줘"라고 시키면 Claude가 해당 도구를 호출</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li><strong>Skill만</strong> 필요하면(코드 작성·리뷰만, 실물 제어 없이) PDK 없이 설치할 수 있습니다. → 4·5장의 <code>-SkillOnly</code>.</li>
+    <li><strong>MCP</strong>는 Power PMAC IDE + PDK가 설치된 Windows PC에서 동작합니다(빌드·다운로드).</li>
+  </ul>
+
+  <h2><span class="n">3.</span>사전 준비</h2>
+  <table>
+    <thead><tr><th>항목</th><th>용도</th><th>없으면</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Claude Code</strong></td><td>모든 기능의 실행 환경</td><td>먼저 설치(1장)</td></tr>
+      <tr><td><strong>Windows + .NET Framework 4.8</strong></td><td>MCP 실행(Win10/11 기본 포함)</td><td>—</td></tr>
+      <tr><td><strong>Power PMAC IDE + PDK 라이선스</strong></td><td>MCP <strong>빌드·다운로드</strong>(컴파일러·rsync·라이선스 제공)</td><td>MCP 불가 → Skill만(<code>-SkillOnly</code>)</td></tr>
+      <tr><td><strong>.NET SDK</strong> (최초 1회)</td><td>MCP <strong>빌드</strong></td><td>MCP 빌드 불가 → Skill만</td></tr>
+    </tbody>
+  </table>
+  <blockquote><p>코드 작성·리뷰만 하는 분은 IDE/PDK·SDK 없이 <strong>Skill만</strong> 쓰면 됩니다.</p></blockquote>
+
+  <h2><span class="n">4.</span>설치·등록</h2>
+  <p>사내 저장소를 clone하고 <code>setup.ps1</code>을 한 번 실행하면 끝입니다. 경로는 자동 감지되어 직접 편집할 필요가 없습니다.</p>
+  <p><strong>Skill + MCP (PDK 있는 PC):</strong></p>
+<pre><code>git clone Z:\업무공통\Git\Claude_MCP C:\Tools\PowerPMAC_MCP
+cd C:\Tools\PowerPMAC_MCP
+powershell -ExecutionPolicy Bypass -File .\setup.ps1</code></pre>
+  <p><strong>Skill만 (PDK 없는 PC):</strong></p>
+<pre><code>git clone Z:\업무공통\Git\Claude_MCP C:\Tools\PowerPMAC_MCP
+cd C:\Tools\PowerPMAC_MCP
+powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly</code></pre>
+  <p><code>setup.ps1</code>이 자동으로 수행합니다:</p>
+  <ol>
+    <li><strong>Skill 설치</strong> — <code>~/.claude/skills/powerpmac-dev</code>를 저장소로 연결(junction).</li>
+    <li><strong>PDK·컴파일러 자동 감지</strong> — 환경변수 → <code>DTBUILDPATH</code> → 레지스트리 → 기본 설치경로.</li>
+    <li><strong>MCP 빌드</strong> — 감지한 PDK로 x86/net48 빌드.</li>
+    <li><strong>등록</strong> — <code>claude mcp add powerpmac --scope user</code>(모든 프로젝트에서 사용).</li>
+  </ol>
+  <p>끝나면 <strong>Claude Code를 재시작</strong>하세요. (상세 절차·문제 해결은 루트 <code>INSTALL.md</code> 참고.)</p>
+
+  <h2><span class="n">5.</span>설치 확인</h2>
+  <ul>
+    <li>터미널에서 <code>claude mcp list</code> → 목록에 <strong><code>powerpmac</code></strong>이 보이면 MCP 등록 완료.</li>
+    <li>Claude Code를 재시작하고 다음을 물어보세요(= Skill 확인):
+      <blockquote><p>"Power PMAC에서 Motor[1] 데이터 구조 간단히 설명해줘"</p></blockquote>
+      실제 요소(예: <code>Motor[1].ActPos</code>, <code>Motor[1].JogSpeed</code>)를 들어 답하면 Skill이 동작 중입니다.
+    </li>
+  </ul>
+
+  <h2><span class="n">6.</span>권한 승인 이해하기 <span style="font-size:14px;color:var(--muted);font-weight:400;">(처음 사용자 필독)</span></h2>
+  <p>Claude Code는 <strong>파일을 바꾸거나 명령·도구를 실행하기 전에 승인을 묻습니다.</strong></p>
+  <ul>
+    <li>프롬프트가 뜨면 <strong>허용(Allow)</strong> 또는 <strong>거부</strong>를 고릅니다. "이 세션에서 항상 허용"을 고르면 같은 종류는 다시 묻지 않습니다.</li>
+    <li>MCP 도구(빌드·다운로드·컨트롤러 명령)도 처음 호출할 때 동일하게 승인을 묻습니다 — 안심하고 진행하세요.</li>
+    <li>컨트롤러 상태를 바꾸는 작업(<code>download_project</code>, <code>send_command</code>)은 <strong>내용을 확인한 뒤</strong> 허용하길 권장합니다.</li>
+  </ul>
+
+  <h2><span class="n">7.</span>Skill 사용법 — 물어보기만 하면 됩니다</h2>
+  <p><strong>Skill은 따로 호출하지 않습니다.</strong> Power PMAC 관련 질문을 하면 Claude가 자동으로 이 지식을 적용합니다.</p>
+  <p><strong>다루는 주제</strong> (물어보면 정확히 답하는 범위):</p>
+  <table>
+    <thead><tr><th>주제</th><th>예</th></tr></thead>
+    <tbody>
+      <tr><td>문법·변수·흐름제어</td><td>P/Q/M/L/I 변수, 온라인 vs 버퍼 명령</td></tr>
+      <tr><td>데이터구조</td><td><code>Structure[index].Element</code>, <code>Sys.</code>/<code>Motor[]</code>/<code>Coord[]</code>/<code>Gate3[]</code>, SAVED/STATUS</td></tr>
+      <tr><td>모션 프로그램</td><td><code>open prog</code>, linear/circle/pvt/spline, 좌표계·축정의, lookahead, G코드</td></tr>
+      <tr><td>PLC 프로그램</td><td><code>open plc</code>, 스캔 모델, 타이머, <code>cmd</code>, 시퀀싱</td></tr>
+      <tr><td>C 프로그래밍</td><td>CPLC(실시간) vs capp(백그라운드), C API, CfromScript</td></tr>
+      <tr><td>함정(gotcha)</td><td>태스크 우선순위, save/reset, 단위, 모션 안전, 에러 ID</td></tr>
+      <tr><td>프로젝트 구조</td><td>폴더 구성, <code>.ppproj</code>, <code>pp_proj.ini</code> 로드 순서</td></tr>
+    </tbody>
+  </table>
+  <p><strong>예시 프롬프트:</strong></p>
+  <ul>
+    <li>"1축을 100mm 상대 이동했다가 돌아오는 모션 프로그램 작성해줘"</li>
+    <li>"이 PLC가 왜 매 스캔마다 안 도는지 봐줘" (코드 첨부)</li>
+    <li>"<code>Motor[L0+1].ActPos</code>처럼 인덱스에 변수 연산을 쓰면 왜 안 돼?" → 인덱스는 상수나 단일 지역변수만 쓸 수 있다는 함정을 설명</li>
+    <li>"capp와 CPLC 차이, 언제 무엇을 써야 하는지 알려줘"</li>
+  </ul>
+  <p><strong>동작 확인</strong>: 답변이 실제 요소명·firmware 동작과 일치하면 OK. 미심쩍으면 "근거 reference가 어디야?"라고 되물으면 출처를 댑니다.</p>
+
+  <h2><span class="n">8.</span>MCP 사용법 — 시키면 도구를 호출합니다</h2>
+  <p><strong>MCP도 도구 이름을 외울 필요가 없습니다.</strong> 하고 싶은 일을 자연어로 말하면 Claude가 알맞은 도구를 골라 승인을 받고 실행합니다. 아래 표는 어떤 도구가 무엇을 하는지에 대한 참고입니다.</p>
+  <p><strong>도구 목록 (9개):</strong></p>
+  <table>
+    <thead><tr><th>그룹</th><th>도구</th><th>하는 일</th><th>주요 입력(기본값)</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="2">빌드/다운로드</td><td><code>build_project</code></td><td>PC에서 프로젝트를 빌드(컴파일)</td><td><code>projectPath</code>(.ppproj 경로, 필수), <code>configuration</code>(Release)</td></tr>
+      <tr><td><code>download_project</code></td><td>빌드된 프로젝트를 컨트롤러로 전송·로드</td><td><code>projectPath</code>(필수), <code>ipAddress</code>(필수), <code>password</code>(deltatau)</td></tr>
+      <tr><td rowspan="3">연결</td><td><code>connect</code></td><td>지속 gpascii·셸 세션 열기</td><td><code>ipAddress</code>(필수), <code>username</code>(root), <code>password</code>(deltatau), <code>port</code>(22)</td></tr>
+      <tr><td><code>disconnect</code></td><td>세션 닫기</td><td>—</td></tr>
+      <tr><td><code>connection_status</code></td><td>연결 상태 확인</td><td>—</td></tr>
+      <tr><td rowspan="3">명령</td><td><code>send_command</code></td><td>명령 실행(대입·동작; 응답은 상태)</td><td><code>command</code></td></tr>
+      <tr><td><code>get_response</code></td><td>질의 후 응답 반환</td><td><code>command</code></td></tr>
+      <tr><td><code>get_responses</code></td><td>여러 질의를 한 번에</td><td><code>commands</code>(배열)</td></tr>
+      <tr><td>셸</td><td><code>exec_shell</code></td><td>컨트롤러에서 리눅스 셸 명령 실행</td><td><code>command</code>(연결 필요)</td></tr>
+    </tbody>
+  </table>
+  <p>기본 접속값: IP는 필수, 사용자 <code>root</code>, 비밀번호 <code>deltatau</code>, 포트 <code>22</code>.</p>
+  <p><strong>대표 워크플로 (말 → Claude가 호출하는 도구):</strong></p>
+  <ol>
+    <li><strong>빌드</strong> — "<code>C:\Work\MyMachine\MyMachine.ppproj</code> 빌드해줘" → <code>build_project</code></li>
+    <li><strong>다운로드</strong> — "방금 그 프로젝트를 192.168.0.200에 다운로드해줘" → <code>download_project</code> (C 코드가 바뀌었으면 빌드부터 — Claude가 순서를 챙깁니다)</li>
+    <li><strong>연결 + 조회</strong> — "192.168.0.200 연결하고 Motor[1].ActPos 읽어줘" → <code>connect</code> + <code>get_response</code></li>
+    <li><strong>명령 전송</strong> — "Motor[1].JogSpeed=10 설정하고 1축 +방향으로 조그시켜줘" → <code>send_command</code> (<code>Motor[1].JogSpeed=10</code>, 이어서 <code>#1j+</code>)</li>
+    <li><strong>배치 조회</strong> — "Motor[1]~Motor[4]의 ActPos를 한 번에 읽어줘" → <code>get_responses</code></li>
+    <li><strong>셸</strong> — "컨트롤러에서 <code>/var/ftp/usrflash/Project</code> 폴더 목록 보여줘" → <code>exec_shell</code> (<code>ls -al ...</code>)</li>
+  </ol>
+  <p><strong>알아둘 점:</strong></p>
+  <ul>
+    <li><strong>다운로드는 RAM에만</strong> 올라갑니다(휘발성). 영구 저장은 컨트롤러에서 <code>save</code>가 필요합니다 — "save 해줘"라고 시키면 <code>send_command "save"</code>로 처리됩니다.</li>
+    <li>C 코드를 바꿨으면 <strong><code>build_project</code>를 먼저</strong>, 그다음 <code>download_project</code>. (다운로드는 C를 재빌드하지 않습니다.)</li>
+    <li>gpascii 세션은 한 번에 하나입니다. 새로 <code>connect</code>하면 이전 세션을 대체합니다.</li>
+  </ul>
+
+  <h2><span class="n">9.</span>자주 묻는 질문 · 문제 해결</h2>
+  <table>
+    <thead><tr><th>증상</th><th>조치</th></tr></thead>
+    <tbody>
+      <tr><td>질문해도 Skill이 안 먹는 듯</td><td>Claude Code <strong>재시작</strong>. <code>~/.claude/skills/powerpmac-dev</code> 연결 확인(없으면 <code>setup.ps1 -SkillOnly</code> 재실행).</td></tr>
+      <tr><td><code>claude mcp list</code>에 <code>powerpmac</code>이 없음</td><td><code>setup.ps1</code> 재실행 후 <strong>재시작</strong>. <code>claude</code>가 PATH에 없으면 setup.ps1이 출력한 <code>claude mcp add ...</code> 명령을 직접 실행.</td></tr>
+      <tr><td>PDK를 못 찾음(빌드 실패)</td><td><code>setup.ps1 -PdkHome "C:\...\PDK"</code> (CLLLicFile.lic 있는 폴더 지정). IDE/PDK 설치 확인.</td></tr>
+      <tr><td>빌드가 파일 잠금 오류</td><td>실행 중 MCP가 exe를 잠그므로 <strong>Claude Code 종료</strong> 후 <code>setup.ps1</code> 재실행.</td></tr>
+      <tr><td>다운로드 시 컨트롤러 접속 실패</td><td>IP/비밀번호(기본 <code>root</code>/<code>deltatau</code>, 포트 22)와 같은 네트워크인지 확인.</td></tr>
+      <tr><td>도구 실행 승인 프롬프트가 매번 뜸</td><td>"이 세션에서 항상 허용"을 선택.</td></tr>
+    </tbody>
+  </table>
+  <p>더 깊은 설치·이식성 문제는 루트 <strong><code>INSTALL.md</code></strong>, MCP 내부 동작은 <strong><code>mcp-server/README.md</code></strong>를 참고하세요.</p>
+
+  <h2><span class="n">10.</span>더 보기</h2>
+  <ul>
+    <li><code>README.md</code> — 저장소 개요</li>
+    <li><code>INSTALL.md</code> — 설치·업데이트·문제 해결 상세</li>
+    <li><code>mcp-server/README.md</code> — MCP 동작 원리(헤드리스 PTY, rsync + projpp 등)</li>
+    <li><code>Skills/powerpmac-dev/SKILL.md</code> — Skill이 참조하는 지식 구조</li>
+  </ul>
+
+  <hr>
+  <p class="foot">문서 버전: 2026-06 · 개선 사항은 저장소에 커밋하거나 담당자에게 전달해 주세요.</p>
+
+</main>
+</body>
+</html>
