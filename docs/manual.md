@@ -100,14 +100,14 @@ Claude Code에 두 가지가 더해집니다 — 지식을 주는 **Skill**과, 
 
 **Skill + MCP (PDK 설치된 PC):**
 ```powershell
-git clone Z:\업무공통\Git\Claude_MCP C:\Tools\PowerPMAC_MCP
+git clone https://github.com/minimin333/PowerPMAC_MCP.git C:\Tools\PowerPMAC_MCP
 cd C:\Tools\PowerPMAC_MCP
 powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
 **Skill만 (PDK 없는 PC):**
 ```powershell
-git clone Z:\업무공통\Git\Claude_MCP C:\Tools\PowerPMAC_MCP
+git clone https://github.com/minimin333/PowerPMAC_MCP.git C:\Tools\PowerPMAC_MCP
 cd C:\Tools\PowerPMAC_MCP
 powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly
 ```

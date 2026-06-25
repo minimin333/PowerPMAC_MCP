@@ -196,11 +196,11 @@
   </div>
   <p>사내 저장소를 clone하고 <code>setup.ps1</code>을 한 번 실행하면 <strong>Skill 설치 · PDK/컴파일러 자동 감지 · MCP 빌드 · 등록</strong>까지 자동으로 처리됩니다. 경로는 자동 감지되어 직접 편집할 필요가 없습니다.</p>
   <p><strong>Skill + MCP (PDK 설치된 PC):</strong></p>
-<pre><code>git clone Z:\업무공통\Git\Claude_MCP C:\Tools\PowerPMAC_MCP
+<pre><code>git clone https://github.com/minimin333/PowerPMAC_MCP.git C:\Tools\PowerPMAC_MCP
 cd C:\Tools\PowerPMAC_MCP
 powershell -ExecutionPolicy Bypass -File .\setup.ps1</code></pre>
   <p><strong>Skill만 (PDK 없는 PC):</strong></p>
-<pre><code>git clone Z:\업무공통\Git\Claude_MCP C:\Tools\PowerPMAC_MCP
+<pre><code>git clone https://github.com/minimin333/PowerPMAC_MCP.git C:\Tools\PowerPMAC_MCP
 cd C:\Tools\PowerPMAC_MCP
 powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly</code></pre>
   <p>끝나면 <strong>Claude Code를 재시작</strong>하세요. (상세 절차·문제 해결은 루트 <code>INSTALL.md</code> 참고.)</p>

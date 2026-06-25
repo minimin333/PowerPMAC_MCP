@@ -18,7 +18,7 @@
 
 ## 설치 (Skill + MCP)
 ```powershell
-git clone Z:\업무공통\Git\Claude_MCP C:\Tools\PowerPMAC_MCP
+git clone https://github.com/minimin333/PowerPMAC_MCP.git C:\Tools\PowerPMAC_MCP
 cd C:\Tools\PowerPMAC_MCP
 powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
@@ -33,7 +33,7 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1
 
 ## 설치 (Skill만 — PDK 없는 PC)
 ```powershell
-git clone Z:\업무공통\Git\Claude_MCP C:\Tools\PowerPMAC_MCP
+git clone https://github.com/minimin333/PowerPMAC_MCP.git C:\Tools\PowerPMAC_MCP
 cd C:\Tools\PowerPMAC_MCP
 powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly
 ```
