@@ -10,7 +10,7 @@
   멱등(재실행 안전). 관리자 권한 불필요.
 
 .PARAMETER PdkHome
-  PDK 폴더를 직접 지정(CLLLicFile.lic 가 있는 폴더). 자동 감지가 실패할 때만 사용.
+  PDK 폴더를 직접 지정(ODT.PowerPmacBuildAndDownload.dll 등 PDK DLL이 있는 폴더). 자동 감지 실패 시만 사용.
 
 .PARAMETER SkillOnly
   MCP 빌드·등록을 건너뛰고 Skill만 설치(컨트롤러·PDK 없는 PC용).
@@ -52,8 +52,9 @@ function Warn($m){ Write-Host "[setup] $m" -ForegroundColor Yellow }
 function Test-IsPdk($p){
   if([string]::IsNullOrWhiteSpace($p)){ return $false }
   $p = $p.Trim().TrimEnd('\','"')
-  return (Test-Path (Join-Path $p 'CLLLicFile.lic')) -and
-         (Test-Path (Join-Path $p 'ODT.PowerPmacBuildAndDownload.dll')) -and
+  # PDK 폴더 판정은 DLL로만 한다 — CLLLicFile.lic 의 정식 위치는 System32/SysWOW64 라
+  # PDK 폴더엔 없을 수 있다(체험판 등). 라이선스 유무로 설치를 막지 않는다(빌드 시 컴파일러가 처리).
+  return (Test-Path (Join-Path $p 'ODT.PowerPmacBuildAndDownload.dll')) -and
          (Test-Path (Join-Path $p 'PPMAC460CompileTask.dll')) -and
          (Test-Path (Join-Path $p 'cygwin1.dll'))
 }

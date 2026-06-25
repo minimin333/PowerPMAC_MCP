@@ -129,8 +129,10 @@ namespace PowerPmacMcp
         {
             if (string.IsNullOrEmpty(p)) return false;
             p = p.TrimEnd('\\', '"');
+            // PDK folder is identified by its DLLs only. CLLLicFile.lic actually lives in
+            // System32/SysWOW64, not the PDK folder, so requiring it here false-rejects valid
+            // PDKs (e.g. trial installs). Licensing is enforced by the compiler at build time.
             return Directory.Exists(p)
-                && File.Exists(Path.Combine(p, "CLLLicFile.lic"))                       // license (distinguishes the real PDK)
                 && File.Exists(Path.Combine(p, "ODT.PowerPmacBuildAndDownload.dll"))
                 && File.Exists(Path.Combine(p, "PPMAC460CompileTask.dll"))
                 && File.Exists(Path.Combine(p, "cygwin1.dll"));
