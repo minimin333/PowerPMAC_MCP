@@ -9,6 +9,7 @@
     --fg:#1d2530; --muted:#5a6473; --bg:#ffffff; --soft:#f5f7fa;
     --accent:#0b6bcb; --accent-soft:#e8f1fc; --border:#d8dee7;
     --code-bg:#f3f5f8; --code-fg:#173a5e; --warn:#8a5a00; --warn-bg:#fff7e6;
+    --green:#0a8f5b;
     --mono:'Cascadia Code','D2Coding',Consolas,'Courier New',monospace;
     --sans:'Malgun Gothic','Segoe UI','Apple SD Gothic Neo',Pretendard,'Noto Sans KR',sans-serif;
   }
@@ -24,7 +25,7 @@
   .titlecard h1{margin:0 0 6px;font-size:26px;line-height:1.3;border:0;padding:0;}
   .titlecard .sub{color:var(--accent);font-weight:600;font-size:15px;margin:0 0 12px;}
   .titlecard .lede{margin:0;color:var(--muted);font-size:14.5px;}
-  .hint{color:var(--muted);font-size:12.5px;margin:8px 2px 30px;}
+  .hint{color:var(--muted);font-size:12.5px;margin:8px 2px 24px;}
 
   h2{font-size:20px;margin:38px 0 12px;padding-bottom:7px;border-bottom:2px solid var(--border);}
   h2 .n{display:inline-block;min-width:1.5em;color:var(--accent);font-weight:800;}
@@ -53,6 +54,31 @@
     border-left:4px solid #f0c04a;border-radius:0 6px 6px 0;color:#5b4a1f;}
   blockquote p{margin:4px 0;}
 
+  /* 목차 */
+  .toc{border:1px solid var(--border);border-radius:9px;background:var(--soft);
+    padding:16px 26px 18px;margin:6px 0 8px;}
+  .toc h2{border:0;margin:2px 0 8px;font-size:18px;padding:0;}
+  .toc ol{margin:0;padding-left:26px;}
+  .toc li{margin:5px 0;}
+  .toc a{color:var(--fg);}
+  .toc a:hover{color:var(--accent);}
+
+  /* 역량 패널 */
+  .panel{border:1px solid var(--border);border-left:4px solid var(--accent);
+    background:var(--soft);border-radius:0 9px 9px 0;padding:4px 20px 12px;margin:16px 0;}
+  .panel.mcp{border-left-color:var(--green);}
+  .panel h3{margin-top:14px;}
+
+  /* 경고 콜아웃 */
+  .callout{border:1px solid #f0c04a;border-left:5px solid #e0a800;background:var(--warn-bg);
+    border-radius:0 9px 9px 0;padding:12px 18px;margin:16px 0;color:#5b4a1f;}
+  .callout strong{color:#7a5500;}
+
+  /* 플로차트 */
+  figure.flow{margin:18px 0 8px;text-align:center;}
+  figure.flow svg{width:100%;max-width:520px;height:auto;}
+  figure.flow figcaption{color:var(--muted);font-size:12.5px;margin-top:6px;}
+
   hr{border:0;border-top:1px solid var(--border);margin:30px 0;}
   .foot{color:var(--muted);font-size:12.5px;margin-top:8px;}
 
@@ -61,8 +87,9 @@
     body{font-size:11.5pt;}
     .doc{max-width:none;padding:0;}
     .hint{display:none;}
+    .toc{break-after:page;}
     h2{margin-top:22px;}
-    pre,table,blockquote,tr,img{break-inside:avoid;}
+    pre,table,blockquote,tr,img,figure.flow,.panel,.callout{break-inside:avoid;}
     h2,h3{break-after:avoid;}
     a{color:var(--fg);}
   }
@@ -78,7 +105,24 @@
   </section>
   <p class="hint">💡 인쇄 또는 PDF 저장: 브라우저에서 <code>Ctrl</code>+<code>P</code> → 대상 "PDF로 저장". (저장소에 <code>manual.pdf</code> 동봉)</p>
 
-  <h2><span class="n">0.</span>이 문서는</h2>
+  <nav class="toc">
+    <h2>목차</h2>
+    <ol start="0">
+      <li><a href="#s0">이 문서는</a></li>
+      <li><a href="#s1">Claude Code란?</a></li>
+      <li><a href="#s2">이 도구가 주는 것 — Skill과 MCP가 할 수 있는 일</a></li>
+      <li><a href="#s3">사전 준비</a></li>
+      <li><a href="#s4">설치·등록</a></li>
+      <li><a href="#s5">설치 확인</a></li>
+      <li><a href="#s6">권한 승인 이해하기</a></li>
+      <li><a href="#s7">Skill 사용법 — 물어보기만 하면 됩니다</a></li>
+      <li><a href="#s8">MCP 사용법 — 개발 워크플로</a></li>
+      <li><a href="#s9">자주 묻는 질문 · 문제 해결</a></li>
+      <li><a href="#s10">더 보기</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="s0"><span class="n">0.</span>이 문서는</h2>
   <ul>
     <li><strong>대상</strong>: Claude Code를 처음 쓰는 Power PMAC 개발자.</li>
     <li><strong>끝나면 할 수 있는 것</strong>
@@ -90,7 +134,7 @@
     <li><strong>소요 시간</strong>: 설치 5~10분(+최초 빌드 1회). 이후엔 자연어 대화만.</li>
   </ul>
 
-  <h2><span class="n">1.</span>Claude Code란?</h2>
+  <h2 id="s1"><span class="n">1.</span>Claude Code란?</h2>
   <p>Claude Code는 <strong>터미널·IDE에서 동작하는 AI 코딩 에이전트</strong>입니다. 채팅하듯 한국어로 지시하면 파일을 읽고·쓰고, 명령을 실행하고, (이 도구를 설치하면) Power PMAC 컨트롤러까지 다룹니다.</p>
   <ul>
     <li><strong>설치/실행</strong>: 사내 표준 설치본 또는 공식 안내(<code>claude.com/claude-code</code>)를 따릅니다. 설치 후 터미널에서 <code>claude</code>를 입력하거나 VS Code/IDE 확장으로 실행합니다.</li>
@@ -98,20 +142,43 @@
   </ul>
   <p>이 매뉴얼이 추가로 설치하는 것은 두 가지입니다 — <strong>Skill</strong>(지식)과 <strong>MCP</strong>(컨트롤러 제어).</p>
 
-  <h2><span class="n">2.</span>이 도구가 주는 것</h2>
-  <table>
-    <thead><tr><th>구성</th><th>무엇</th><th>어떻게 쓰나</th></tr></thead>
-    <tbody>
-      <tr><td><strong>Skill</strong> <code>powerpmac-dev</code></td><td>Power PMAC의 Script(모션·PLC)·C 문법, 데이터구조, 자주 틀리는 함정, 프로젝트 구조 지식</td><td>그냥 한국어로 물어보면 자동 적용 — Claude가 정확히 답하고 코드를 작성·리뷰</td></tr>
-      <tr><td><strong>MCP</strong> <code>powerpmac</code></td><td>PC에서 프로젝트 <strong>빌드</strong>, 컨트롤러로 <strong>다운로드</strong>, <strong>라이브 gpascii·셸</strong> 명령</td><td>"빌드해줘 / 다운로드해줘 / 값 읽어줘"라고 시키면 Claude가 해당 도구를 호출</td></tr>
-    </tbody>
-  </table>
+  <h2 id="s2"><span class="n">2.</span>이 도구가 주는 것 — Skill과 MCP가 할 수 있는 일</h2>
+  <p>Claude Code에 두 가지가 더해집니다 — 지식을 주는 <strong>Skill</strong>과, 실제 장비를 다루는 <strong>MCP</strong>.</p>
+
+  <div class="panel">
+    <h3>🧠 Skill <code>powerpmac-dev</code> — Power PMAC를 "이해"하게 합니다</h3>
+    <p>질문하면 자동으로 적용됩니다(별도 호출 없음). 할 수 있는 일:</p>
+    <ul>
+      <li><strong>정확한 코드 작성</strong> — Script 모션 프로그램(<code>prog</code>), Script PLC(<code>plc</code>), C(CPLC 실시간 / capp 백그라운드)를 문법에 맞게 생성합니다.</li>
+      <li><strong>코드 리뷰·디버깅</strong> — "왜 안 도는지"를 짚고, 흔한 함정(인덱스는 상수만, 태스크 우선순위, <code>save</code>/<code>reset</code>, 단위 혼동)을 진단합니다.</li>
+      <li><strong>데이터구조·요소 조회</strong> — <code>Sys.</code>/<code>Motor[]</code>/<code>Coord[]</code>/<code>Gate3[]</code> 등 <strong>1,800개 이상 요소</strong>의 의미·SAVED 여부·레거시 I-변수 대응을 설명합니다.</li>
+      <li><strong>개념 설명</strong> — 좌표계(<code>&amp;</code>) vs 모터(<code>#</code>), 우선순위 4계층(Phase/Servo/RTI/Background), 룩어헤드, G코드, CfromScript 등.</li>
+      <li><strong>프로젝트 구조 안내</strong> — <code>.ppproj</code> 매니페스트, <code>pp_proj.ini</code> 로드 순서, 컨트롤러 <code>/var/ftp/usrflash/Project</code> 매핑.</li>
+      <li><strong>검증된 예제 제공</strong> — 매뉴얼에서 추출·검증한 모션·PLC·C·기구학 스니펫을 바로 적용해 줍니다.</li>
+    </ul>
+    <blockquote><p>근거는 공식 매뉴얼 4종(약 3,260쪽)과 firmware intellisense 요소표에서 정제했습니다. 미심쩍으면 "근거 reference가 어디야?"라고 되물어 출처를 확인할 수 있습니다.</p></blockquote>
+  </div>
+
+  <div class="panel mcp">
+    <h3>🛠 MCP <code>powerpmac</code> — PC에서 컨트롤러를 "조작"합니다</h3>
+    <p>"~해줘"라고 시키면 Claude가 알맞은 도구를 호출합니다. 할 수 있는 일:</p>
+    <ul>
+      <li><strong>빌드</strong> — PDK로 프로젝트를 로컬 컴파일(Script + <strong>ARM C 크로스컴파일</strong>)하고 에러·경고를 보고합니다.</li>
+      <li><strong>다운로드</strong> — 빌드 결과를 컨트롤러로 전송(rsync)한 뒤 로드(<code>projpp</code>)합니다. 헤드리스로 약 8초.</li>
+      <li><strong>라이브 조회</strong> — gpascii 세션으로 <code>Motor[1].ActPos</code> 같은 값을 실시간으로 읽습니다. 여러 개를 한 번에(batch)도 가능.</li>
+      <li><strong>명령 실행</strong> — 대입·조그·프로그램 실행 등 온라인 명령을 보냅니다(<code>Motor[1].JogSpeed=10</code>, <code>#1j+</code>, <code>save</code> …).</li>
+      <li><strong>셸 접근</strong> — 컨트롤러의 리눅스 명령(파일 목록, 로그 확인 등)을 실행합니다.</li>
+      <li><strong>전체 루프</strong> — 한 대화 안에서 <em>작성 → 빌드 → 다운로드 → 검증 → 저장</em>까지 이어집니다(→ 8장 플로차트).</li>
+    </ul>
+  </div>
+
+  <p><strong>조건</strong></p>
   <ul>
-    <li><strong>Skill만</strong> 필요하면(코드 작성·리뷰만, 실물 제어 없이) PDK 없이 설치할 수 있습니다. → 4·5장의 <code>-SkillOnly</code>.</li>
-    <li><strong>MCP</strong>는 Power PMAC IDE + PDK가 설치된 Windows PC에서 동작합니다(빌드·다운로드).</li>
+    <li><strong>Skill만</strong> 쓰려면(코드 작성·리뷰) PDK·SDK 없이도 됩니다 → 4장 <code>-SkillOnly</code>.</li>
+    <li><strong>MCP</strong>는 <strong>Power PMAC IDE + PDK가 설치된 Windows PC가 필수</strong>입니다(빌드·다운로드에 컴파일러·라이선스가 필요).</li>
   </ul>
 
-  <h2><span class="n">3.</span>사전 준비</h2>
+  <h2 id="s3"><span class="n">3.</span>사전 준비</h2>
   <table>
     <thead><tr><th>항목</th><th>용도</th><th>없으면</th></tr></thead>
     <tbody>
@@ -123,9 +190,12 @@
   </table>
   <blockquote><p>코드 작성·리뷰만 하는 분은 IDE/PDK·SDK 없이 <strong>Skill만</strong> 쓰면 됩니다.</p></blockquote>
 
-  <h2><span class="n">4.</span>설치·등록</h2>
-  <p>사내 저장소를 clone하고 <code>setup.ps1</code>을 한 번 실행하면 끝입니다. 경로는 자동 감지되어 직접 편집할 필요가 없습니다.</p>
-  <p><strong>Skill + MCP (PDK 있는 PC):</strong></p>
+  <h2 id="s4"><span class="n">4.</span>설치·등록</h2>
+  <div class="callout">
+    <p>⚠️ <strong>MCP를 쓰려면 Power PMAC IDE + PDK 설치가 필수입니다.</strong> PDK가 제공하는 컴파일러·rsync·라이선스(<code>CLLLicFile.lic</code>)가 있어야 빌드·다운로드가 됩니다. PDK가 없는 PC는 아래 <strong>Skill만 설치</strong>(<code>-SkillOnly</code>)로 코드 작성·리뷰만 사용하세요.</p>
+  </div>
+  <p>사내 저장소를 clone하고 <code>setup.ps1</code>을 한 번 실행하면 <strong>Skill 설치 · PDK/컴파일러 자동 감지 · MCP 빌드 · 등록</strong>까지 자동으로 처리됩니다. 경로는 자동 감지되어 직접 편집할 필요가 없습니다.</p>
+  <p><strong>Skill + MCP (PDK 설치된 PC):</strong></p>
 <pre><code>git clone Z:\업무공통\Git\Claude_MCP C:\Tools\PowerPMAC_MCP
 cd C:\Tools\PowerPMAC_MCP
 powershell -ExecutionPolicy Bypass -File .\setup.ps1</code></pre>
@@ -133,16 +203,9 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1</code></pre>
 <pre><code>git clone Z:\업무공통\Git\Claude_MCP C:\Tools\PowerPMAC_MCP
 cd C:\Tools\PowerPMAC_MCP
 powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly</code></pre>
-  <p><code>setup.ps1</code>이 자동으로 수행합니다:</p>
-  <ol>
-    <li><strong>Skill 설치</strong> — <code>~/.claude/skills/powerpmac-dev</code>를 저장소로 연결(junction).</li>
-    <li><strong>PDK·컴파일러 자동 감지</strong> — 환경변수 → <code>DTBUILDPATH</code> → 레지스트리 → 기본 설치경로.</li>
-    <li><strong>MCP 빌드</strong> — 감지한 PDK로 x86/net48 빌드.</li>
-    <li><strong>등록</strong> — <code>claude mcp add powerpmac --scope user</code>(모든 프로젝트에서 사용).</li>
-  </ol>
   <p>끝나면 <strong>Claude Code를 재시작</strong>하세요. (상세 절차·문제 해결은 루트 <code>INSTALL.md</code> 참고.)</p>
 
-  <h2><span class="n">5.</span>설치 확인</h2>
+  <h2 id="s5"><span class="n">5.</span>설치 확인</h2>
   <ul>
     <li>터미널에서 <code>claude mcp list</code> → 목록에 <strong><code>powerpmac</code></strong>이 보이면 MCP 등록 완료.</li>
     <li>Claude Code를 재시작하고 다음을 물어보세요(= Skill 확인):
@@ -151,7 +214,7 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly</code></pre>
     </li>
   </ul>
 
-  <h2><span class="n">6.</span>권한 승인 이해하기 <span style="font-size:14px;color:var(--muted);font-weight:400;">(처음 사용자 필독)</span></h2>
+  <h2 id="s6"><span class="n">6.</span>권한 승인 이해하기 <span style="font-size:14px;color:var(--muted);font-weight:400;">(처음 사용자 필독)</span></h2>
   <p>Claude Code는 <strong>파일을 바꾸거나 명령·도구를 실행하기 전에 승인을 묻습니다.</strong></p>
   <ul>
     <li>프롬프트가 뜨면 <strong>허용(Allow)</strong> 또는 <strong>거부</strong>를 고릅니다. "이 세션에서 항상 허용"을 고르면 같은 종류는 다시 묻지 않습니다.</li>
@@ -159,7 +222,7 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly</code></pre>
     <li>컨트롤러 상태를 바꾸는 작업(<code>download_project</code>, <code>send_command</code>)은 <strong>내용을 확인한 뒤</strong> 허용하길 권장합니다.</li>
   </ul>
 
-  <h2><span class="n">7.</span>Skill 사용법 — 물어보기만 하면 됩니다</h2>
+  <h2 id="s7"><span class="n">7.</span>Skill 사용법 — 물어보기만 하면 됩니다</h2>
   <p><strong>Skill은 따로 호출하지 않습니다.</strong> Power PMAC 관련 질문을 하면 Claude가 자동으로 이 지식을 적용합니다.</p>
   <p><strong>다루는 주제</strong> (물어보면 정확히 답하는 범위):</p>
   <table>
@@ -183,9 +246,101 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly</code></pre>
   </ul>
   <p><strong>동작 확인</strong>: 답변이 실제 요소명·firmware 동작과 일치하면 OK. 미심쩍으면 "근거 reference가 어디야?"라고 되물으면 출처를 댑니다.</p>
 
-  <h2><span class="n">8.</span>MCP 사용법 — 시키면 도구를 호출합니다</h2>
-  <p><strong>MCP도 도구 이름을 외울 필요가 없습니다.</strong> 하고 싶은 일을 자연어로 말하면 Claude가 알맞은 도구를 골라 승인을 받고 실행합니다. 아래 표는 어떤 도구가 무엇을 하는지에 대한 참고입니다.</p>
-  <p><strong>도구 목록 (9개):</strong></p>
+  <h2 id="s8"><span class="n">8.</span>MCP 사용법 — 개발 워크플로</h2>
+  <p><strong>MCP는 도구 이름을 외울 필요가 없습니다.</strong> 하고 싶은 일을 자연어로 말하면 Claude가 알맞은 도구를 골라 승인을 받고 실행합니다. 전형적인 개발 흐름은 다음과 같습니다.</p>
+
+  <figure class="flow">
+    <svg viewBox="0 0 640 815" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="개발 워크플로 플로차트: 코드 작성 → 빌드 → 다운로드 → 연결 → 검증 → 저장">
+      <defs>
+        <marker id="ah" markerWidth="11" markerHeight="9" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M0,0 L10,4 L0,8 Z" fill="#5a6473"/>
+        </marker>
+      </defs>
+      <style>
+        .ftext{font-family:'Malgun Gothic','Segoe UI',sans-serif;}
+        .proc{fill:#f5f7fa;stroke:#0b6bcb;stroke-width:1.6;}
+        .dec{fill:#fff7e6;stroke:#e0a800;stroke-width:1.6;}
+        .term{fill:#e8f1fc;stroke:#0b6bcb;stroke-width:1.6;}
+        .lbl{font-size:13.5px;font-weight:700;fill:#0c3a63;}
+        .sub{font-size:11.5px;fill:#5a6473;}
+        .dlbl{font-size:13px;font-weight:700;fill:#1d2530;}
+        .tlbl{font-size:13.5px;font-weight:700;fill:#0c3a63;}
+        .edge{fill:none;stroke:#5a6473;stroke-width:1.8;}
+        .ey{font-size:11.5px;font-weight:700;fill:#0a7a4a;}
+        .en{font-size:11px;font-weight:700;fill:#9a6a00;}
+      </style>
+
+      <!-- edges (straight) -->
+      <path class="edge" d="M320,62 L320,103" marker-end="url(#ah)"/>
+      <path class="edge" d="M320,152 L320,180" marker-end="url(#ah)"/>
+      <path class="edge" d="M320,264 L320,292" marker-end="url(#ah)"/>
+      <path class="edge" d="M320,342 L320,381" marker-end="url(#ah)"/>
+      <path class="edge" d="M320,430 L320,471" marker-end="url(#ah)"/>
+      <path class="edge" d="M320,520 L320,548" marker-end="url(#ah)"/>
+      <path class="edge" d="M320,632 L320,660" marker-end="url(#ah)"/>
+      <path class="edge" d="M320,710 L320,750" marker-end="url(#ah)"/>
+      <!-- feedback loops -->
+      <path class="edge" d="M232,222 L70,222 L70,38 L193,38" marker-end="url(#ah)"/>
+      <path class="edge" d="M408,590 L575,590 L575,38 L447,38" marker-end="url(#ah)"/>
+
+      <!-- yes / no labels -->
+      <text class="ftext ey" x="331" y="282">예</text>
+      <text class="ftext ey" x="331" y="650">예</text>
+      <text class="ftext en" x="148" y="214" text-anchor="middle">아니오 · 수정</text>
+      <text class="ftext en" x="496" y="582" text-anchor="middle">아니오 · 수정</text>
+
+      <!-- N1 -->
+      <rect class="proc" x="195" y="14" width="250" height="48" rx="9"/>
+      <text class="ftext lbl" x="320" y="34" text-anchor="middle">① 코드 작성 · 수정</text>
+      <text class="ftext sub" x="320" y="51" text-anchor="middle">Skill에게 자연어로 요청</text>
+      <!-- N2 -->
+      <rect class="proc" x="195" y="104" width="250" height="48" rx="9"/>
+      <text class="ftext lbl" x="320" y="124" text-anchor="middle">build_project</text>
+      <text class="ftext sub" x="320" y="141" text-anchor="middle">빌드 — Script + ARM C</text>
+      <!-- D1 -->
+      <polygon class="dec" points="320,182 408,222 320,262 232,222"/>
+      <text class="ftext dlbl" x="320" y="227" text-anchor="middle">빌드 성공?</text>
+      <!-- N3 -->
+      <rect class="proc" x="195" y="294" width="250" height="48" rx="9"/>
+      <text class="ftext lbl" x="320" y="314" text-anchor="middle">download_project</text>
+      <text class="ftext sub" x="320" y="331" text-anchor="middle">다운로드 → 컨트롤러 RAM</text>
+      <!-- N4 -->
+      <rect class="proc" x="195" y="382" width="250" height="48" rx="9"/>
+      <text class="ftext lbl" x="320" y="402" text-anchor="middle">connect</text>
+      <text class="ftext sub" x="320" y="419" text-anchor="middle">gpascii 세션 연결</text>
+      <!-- N5 -->
+      <rect class="proc" x="195" y="472" width="250" height="48" rx="9"/>
+      <text class="ftext lbl" x="320" y="492" text-anchor="middle">get_response / send_command</text>
+      <text class="ftext sub" x="320" y="509" text-anchor="middle">값 조회 · 명령 실행</text>
+      <!-- D2 -->
+      <polygon class="dec" points="320,550 408,590 320,630 232,590"/>
+      <text class="ftext dlbl" x="320" y="595" text-anchor="middle">정상 동작?</text>
+      <!-- N6 -->
+      <rect class="proc" x="195" y="662" width="250" height="48" rx="9"/>
+      <text class="ftext lbl" x="320" y="682" text-anchor="middle">send_command "save"</text>
+      <text class="ftext sub" x="320" y="699" text-anchor="middle">flash에 영구 저장</text>
+      <!-- N7 terminator -->
+      <rect class="term" x="258" y="752" width="124" height="40" rx="20"/>
+      <text class="ftext tlbl" x="320" y="777" text-anchor="middle">완료</text>
+    </svg>
+    <figcaption>전형적인 개발 루프 — 실패하면 코드로 돌아가 다시 빌드, 정상 동작하면 <code>save</code>로 영구 저장.</figcaption>
+  </figure>
+
+  <p><strong>이렇게 말하면 → Claude가 호출하는 도구:</strong></p>
+  <table>
+    <thead><tr><th>이렇게 말하면</th><th>Claude가 호출</th></tr></thead>
+    <tbody>
+      <tr><td>"이 프로젝트 빌드해줘"</td><td><code>build_project</code></td></tr>
+      <tr><td>"192.168.0.200에 다운로드해줘"</td><td><code>download_project</code></td></tr>
+      <tr><td>"연결하고 Motor[1].ActPos 읽어줘"</td><td><code>connect</code> + <code>get_response</code></td></tr>
+      <tr><td>"Motor[1].JogSpeed=10 주고 1축 +방향 조그해줘"</td><td><code>send_command</code> (<code>Motor[1].JogSpeed=10</code>, <code>#1j+</code>)</td></tr>
+      <tr><td>"Motor[1]~Motor[4] ActPos 한 번에 읽어줘"</td><td><code>get_responses</code></td></tr>
+      <tr><td>"Project 폴더 목록 보여줘"</td><td><code>exec_shell</code> (<code>ls -al ...</code>)</td></tr>
+      <tr><td>"save 해줘"</td><td><code>send_command "save"</code></td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>도구 전체 목록 (9개):</strong></p>
   <table>
     <thead><tr><th>그룹</th><th>도구</th><th>하는 일</th><th>주요 입력(기본값)</th></tr></thead>
     <tbody>
@@ -201,15 +356,7 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly</code></pre>
     </tbody>
   </table>
   <p>기본 접속값: IP는 필수, 사용자 <code>root</code>, 비밀번호 <code>deltatau</code>, 포트 <code>22</code>.</p>
-  <p><strong>대표 워크플로 (말 → Claude가 호출하는 도구):</strong></p>
-  <ol>
-    <li><strong>빌드</strong> — "<code>C:\Work\MyMachine\MyMachine.ppproj</code> 빌드해줘" → <code>build_project</code></li>
-    <li><strong>다운로드</strong> — "방금 그 프로젝트를 192.168.0.200에 다운로드해줘" → <code>download_project</code> (C 코드가 바뀌었으면 빌드부터 — Claude가 순서를 챙깁니다)</li>
-    <li><strong>연결 + 조회</strong> — "192.168.0.200 연결하고 Motor[1].ActPos 읽어줘" → <code>connect</code> + <code>get_response</code></li>
-    <li><strong>명령 전송</strong> — "Motor[1].JogSpeed=10 설정하고 1축 +방향으로 조그시켜줘" → <code>send_command</code> (<code>Motor[1].JogSpeed=10</code>, 이어서 <code>#1j+</code>)</li>
-    <li><strong>배치 조회</strong> — "Motor[1]~Motor[4]의 ActPos를 한 번에 읽어줘" → <code>get_responses</code></li>
-    <li><strong>셸</strong> — "컨트롤러에서 <code>/var/ftp/usrflash/Project</code> 폴더 목록 보여줘" → <code>exec_shell</code> (<code>ls -al ...</code>)</li>
-  </ol>
+
   <p><strong>알아둘 점:</strong></p>
   <ul>
     <li><strong>다운로드는 RAM에만</strong> 올라갑니다(휘발성). 영구 저장은 컨트롤러에서 <code>save</code>가 필요합니다 — "save 해줘"라고 시키면 <code>send_command "save"</code>로 처리됩니다.</li>
@@ -217,7 +364,7 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly</code></pre>
     <li>gpascii 세션은 한 번에 하나입니다. 새로 <code>connect</code>하면 이전 세션을 대체합니다.</li>
   </ul>
 
-  <h2><span class="n">9.</span>자주 묻는 질문 · 문제 해결</h2>
+  <h2 id="s9"><span class="n">9.</span>자주 묻는 질문 · 문제 해결</h2>
   <table>
     <thead><tr><th>증상</th><th>조치</th></tr></thead>
     <tbody>
@@ -231,7 +378,7 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly</code></pre>
   </table>
   <p>더 깊은 설치·이식성 문제는 루트 <strong><code>INSTALL.md</code></strong>, MCP 내부 동작은 <strong><code>mcp-server/README.md</code></strong>를 참고하세요.</p>
 
-  <h2><span class="n">10.</span>더 보기</h2>
+  <h2 id="s10"><span class="n">10.</span>더 보기</h2>
   <ul>
     <li><code>README.md</code> — 저장소 개요</li>
     <li><code>INSTALL.md</code> — 설치·업데이트·문제 해결 상세</li>
