@@ -32,6 +32,12 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# 콘솔 출력을 UTF-8로 — dotnet 등 자식 프로세스는 한글을 UTF-8로 출력하므로,
+# 한국어 Windows 기본 콘솔(CP949)에 그대로 두면 깨진다(예: '빌드' -> '鍮뚮뱶').
+# 표시 전용이며 멱등하다. 구형 콘솔에서 실패해도 무시.
+try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch {}
+
 $Repo     = $PSScriptRoot
 $SkillSrc = Join-Path $Repo 'Skills\powerpmac-dev'
 $Csproj   = Join-Path $Repo 'mcp-server\PowerPmacMcp.csproj'
@@ -118,6 +124,53 @@ function Install-Skill {
   Ok "Skill 설치: $dest  ->  $SkillSrc"
 }
 
+# ---- MCP 직접 등록 (claude CLI가 PATH에 없을 때 — 데스크톱 앱 등) -------
+# user-scope MCP는 ~/.claude.json 최상위 'mcpServers'에 저장된다. claude CLI 없이도
+# 같은 결과를 만든다. 멱등(이미 동일하면 파일을 건드리지 않음). UTF-8(BOM 없음) 유지 필수
+# — BOM이 있으면 Node의 JSON.parse가 깨진다. 'mcpServers'가 이미 있으면 정확성을 위해
+# round-trip(파싱→수정→직렬화), 없으면 최소 변경(외과적 삽입). 핵심 키 유실 감지 시 중단.
+function Register-McpDirect {
+  param([string]$exe,[string]$pdk,[string]$comp)
+  $cfg = Join-Path $HOME '.claude.json'
+  $envObj = [ordered]@{ POWERPMAC_PDK_HOME = $pdk }
+  if($comp){ $envObj.POWERPMAC_COMPILERS_HOME = $comp }
+  $serverVal = ([ordered]@{ type='stdio'; command=$exe; args=@(); env=$envObj } | ConvertTo-Json -Depth 10 -Compress)
+  $utf8 = New-Object System.Text.UTF8Encoding $false
+
+  if(-not (Test-Path $cfg)){
+    [IO.File]::WriteAllText($cfg, "{`r`n  ""mcpServers"": { ""powerpmac"": $serverVal }`r`n}`r`n", $utf8)
+    return 'created'
+  }
+  $raw = [IO.File]::ReadAllText($cfg)
+  try { $obj = $raw | ConvertFrom-Json -ErrorAction Stop } catch { throw "~/.claude.json 파싱 실패 — 수동 등록 필요" }
+  $hasMcp = ($obj.PSObject.Properties.Name -contains 'mcpServers') -and $null -ne $obj.mcpServers
+  $hasPp  = $hasMcp -and ($obj.mcpServers.PSObject.Properties.Name -contains 'powerpmac')
+  if($hasPp){
+    $cur = $obj.mcpServers.powerpmac
+    if($cur.command -eq $exe -and $cur.env.POWERPMAC_PDK_HOME -eq $pdk -and ((-not $comp) -or $cur.env.POWERPMAC_COMPILERS_HOME -eq $comp)){
+      return 'unchanged'
+    }
+  }
+  Copy-Item $cfg "$cfg.bak-$(Get-Date -Format 'yyyyMMdd-HHmmss')" -Force
+  if(-not $hasMcp){
+    $idx = $raw.IndexOf('{')
+    if($idx -lt 0){ throw 'JSON 루트 { 를 찾지 못함' }
+    $new = $raw.Substring(0,$idx+1) + "`r`n  ""mcpServers"": { ""powerpmac"": $serverVal }," + $raw.Substring($idx+1)
+  } else {
+    $ppObj = $serverVal | ConvertFrom-Json
+    if($hasPp){ $obj.mcpServers.powerpmac = $ppObj }
+    else { $obj.mcpServers | Add-Member -NotePropertyName powerpmac -NotePropertyValue $ppObj -Force }
+    $new = $obj | ConvertTo-Json -Depth 100
+  }
+  try { $chk = $new | ConvertFrom-Json -ErrorAction Stop } catch { throw '생성된 JSON 무효 — 기록 중단(백업 유지)' }
+  if(-not $chk.mcpServers.powerpmac.command){ throw 'powerpmac 검증 실패 — 기록 중단(백업 유지)' }
+  foreach($k in @('oauthAccount','userID','projects')){
+    if(($obj.PSObject.Properties.Name -contains $k) -and -not ($chk.PSObject.Properties.Name -contains $k)){ throw "기존 키 '$k' 유실 — 기록 중단(백업 유지)" }
+  }
+  [IO.File]::WriteAllText($cfg, $new, $utf8)
+  if($hasPp){ 'updated' } else { 'added' }
+}
+
 # ======================= main =======================
 Info "저장소: $Repo"
 Install-Skill
@@ -146,17 +199,26 @@ Info "MCP 서버 빌드 중 (x86/net48)..."
 if($LASTEXITCODE -ne 0 -or -not (Test-Path $Exe)){ throw "MCP 빌드 실패 (위 로그 확인)." }
 Ok "빌드 완료: $Exe"
 
-# ---- 3. 등록 (claude mcp add, user scope) ------------------------------
+# ---- 3. 등록 (user scope) ---------------------------------------------
+# claude가 PATH에 있으면 공식 'claude mcp add', 없으면(데스크톱 앱 등) ~/.claude.json 직접 등록.
 if(Get-Command claude -ErrorAction SilentlyContinue){
   try { & claude mcp remove powerpmac --scope user 2>$null | Out-Null } catch {}
   $envArgs = @('-e',"POWERPMAC_PDK_HOME=$pdk")
   if($script:Compilers){ $envArgs += @('-e',"POWERPMAC_COMPILERS_HOME=$script:Compilers") }
   & claude mcp add powerpmac $Exe --scope user @envArgs
-  if($LASTEXITCODE -eq 0){ Ok "MCP 등록 완료 (powerpmac, user scope)." }
-  else { Warn "claude mcp add 실패 — 아래 명령을 수동 실행하세요:"; Write-Host "  claude mcp add powerpmac `"$Exe`" --scope user -e POWERPMAC_PDK_HOME=`"$pdk`"" }
+  if($LASTEXITCODE -eq 0){ Ok "MCP 등록 완료 (powerpmac, user scope) — claude mcp add." }
+  else {
+    Warn "claude mcp add 실패 — ~/.claude.json 직접 등록으로 대체합니다."
+    try { $r = Register-McpDirect $Exe $pdk $script:Compilers; Ok "MCP 등록 완료 ($r) — powerpmac, user scope (~/.claude.json)." }
+    catch { Warn "직접 등록 실패: $($_.Exception.Message)" }
+  }
 } else {
-  Warn "claude CLI를 찾지 못했습니다. 아래 명령으로 수동 등록하세요:"
-  Write-Host "  claude mcp add powerpmac `"$Exe`" --scope user -e POWERPMAC_PDK_HOME=`"$pdk`"" -ForegroundColor White
+  Info "claude CLI가 PATH에 없습니다(데스크톱 앱은 PATH에 두지 않음) — ~/.claude.json에 직접 등록합니다."
+  try { $r = Register-McpDirect $Exe $pdk $script:Compilers; Ok "MCP 등록 완료 ($r) — powerpmac, user scope (~/.claude.json)." }
+  catch {
+    Warn "직접 등록 실패: $($_.Exception.Message)"
+    Warn "수동 등록: ~/.claude.json 최상위 mcpServers에 powerpmac 항목을 추가하세요."
+  }
 }
 
 # ---- 4. (선택) 스모크 ---------------------------------------------------
