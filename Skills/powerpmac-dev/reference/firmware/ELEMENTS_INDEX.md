@@ -1,15 +1,24 @@
-# Power PMAC Data-Structure Element Index (authoritative)
+---
+title: 펌웨어 Element 인덱스
+aliases: [Elements Index, 요소 인덱스]
+tags: [powerpmac/firmware, type/reference]
+domain: firmware
+status: stable
+updated: 2026-06-29
+---
 
-Generated from the controller firmware intellisense tables `pp_swtbl0-3.txt`
-(simulator opt/ppmac, fw 2.3.1.82) — the canonical `Structure,Element` lists the
-IDE/C intellisense uses. For the full element set under a structure, grep the tables
-in `reference/firmware/` (e.g. `Motor`, `Coord`, `Sys` in `pp_swtbl1.txt`).
-Live controller is fw 2.8.3.0 — a few elements may differ; confirm with `get_response`.
+# Power PMAC 데이터 구조 Element 인덱스 (공식)
 
-Source tables: pp_swtbl0.txt (40 rows), pp_swtbl1.txt (1246 rows), pp_swtbl2.txt (563 rows), pp_swtbl3.txt (19 rows)
+컨트롤러 펌웨어 인텔리센스 테이블 `pp_swtbl0-3.txt`
+(시뮬레이터 opt/ppmac, fw 2.3.1.82)에서 생성 — IDE/C 인텔리센스가 사용하는 공식 `Structure,Element` 목록.
+특정 구조 아래의 전체 요소 집합은 `reference/firmware/` 내 테이블에서 grep으로 확인 가능
+(예: `pp_swtbl1.txt`에서 `Motor`, `Coord`, `Sys` 검색).
+실제 컨트롤러는 fw 2.8.3.0 — 일부 요소가 다를 수 있으므로 `get_response`로 확인 권장.
+
+소스 테이블: pp_swtbl0.txt (40 rows), pp_swtbl1.txt (1246 rows), pp_swtbl2.txt (563 rows), pp_swtbl3.txt (19 rows)
 Total entries: 1828  |  distinct top structures: 75
 
-## Top-level structures by element count
+## 요소 수 기준 최상위 구조 목록
 | Structure | # elements |
 |---|---|
 | `Motor[]` | 307 |
@@ -87,3 +96,10 @@ Total entries: 1828  |  distinct top structures: 75
 | `TPData[]` | 3 |
 | `TPExec` | 3 |
 | `RingTest[]` | 2 |
+
+---
+
+## 관련 문서
+- [[data-structure|데이터 구조]] — 요소 모델·주소 지정
+- [[c-api|C API 실제 시그니처]] — pshm 요소 접근
+- [[🗺️ PowerPMAC 지식맵]] — 전체 지식맵(MOC)

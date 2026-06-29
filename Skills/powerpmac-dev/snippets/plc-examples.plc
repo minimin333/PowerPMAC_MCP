@@ -1,94 +1,93 @@
-// Power PMAC Script PLC examples
-// Harvested verbatim from the Power PMAC Training manual (TRN) unless noted.
-// Reminder (TRN p284): PLCs repeat automatically until disabled; for a
-// "one-shot" PLC, the last line should be "disable plc n". Always use
-// edge-triggered logic when commanding jog/home/motion (TRN p293).
+// Power PMAC Script PLC 예제 모음
+// Power PMAC 교육 매뉴얼(TRN)에서 그대로 수집한 코드(별도 표기 없는 한).
+// 참고(TRN p284): PLC는 비활성화될 때까지 자동으로 반복 실행된다. 1회성
+// PLC로 만들려면 마지막 줄을 "disable plc n"으로 끝내야 한다. jog/home/모션
+// 명령을 내릴 때는 항상 에지 트리거 로직을 사용할 것(TRN p293).
 
-// === Counter PLC: increment a global each scan (source: TRN p287) ===
-// Then "enable plc increment" and watch Counter increment in the Watch Window.
+// === Counter PLC: 매 스캔마다 전역 변수 증가 (source: TRN p287) ===
+// "enable plc increment" 후 Watch Window에서 Counter가 증가하는지 확인한다.
 global Counter = 0;
 open plc increment
 Counter++;
 close
 
 
-// === Non-blocking delay/timer subprogram (source: TRN p292) ===
-// Make a "timer.pmc" Sub Program in PMAC Script Language -> Libraries.
-// Waits a specified duration (seconds) without losing master synchronicity.
+// === 비차단(non-blocking) 딜레이/타이머 서브프로그램 (source: TRN p292) ===
+// PMAC Script Language -> Libraries에 "timer.pmc" Sub Program을 생성한다.
+// 마스터 동기를 잃지 않고 지정된 시간(초) 동안 대기한다.
 open subprog Timer(duration)
-local EndTime = Sys.Time + duration; // "local" variable to store end time
+local EndTime = Sys.Time + duration; // 종료 시각을 저장하는 "local" 변수
 while(Sys.Time < EndTime){}
 close
 
-// Call it from any PLC with an argument in seconds:
-// call Timer(0.25); // Wait 0.25 seconds before proceeding
+// 임의의 PLC에서 초(sec) 단위 인수를 주어 호출한다:
+// call Timer(0.25); // 0.25초 대기 후 다음 명령으로 진행
 
 
-// === Edge-triggered (latching) PLC (source: TRN p293) ===
-// Use edge-triggered logic for any command that causes motion, so the
-// command is not dangerously re-sent every scan.
+// === 에지 트리거(래칭) PLC (source: TRN p293) ===
+// 모션을 유발하는 모든 명령에는 에지 트리거 로직을 사용한다. 그래야
+// 명령이 매 스캔마다 위험하게 재전송되지 않는다.
 open plc edgetriggered
-local Latch1 = Input1; // Set initial latch state equal to initial input state
+local Latch1 = Input1; // 래치 초기값을 입력 초기 상태와 동일하게 설정
 while(1){
-if(Input1==1){ // If machine input 1 is high
-if(Latch1==0){ // If machine input 1 was previously low
-Output1=1; // Activate machine output 1
-Latch1=1; // Latch internal machine input 1 signal
+if(Input1==1){ // 기계 입력 1이 High이면
+if(Latch1==0){ // 기계 입력 1이 이전에 Low였다면
+Output1=1; // 기계 출력 1 활성화
+Latch1=1; // 기계 입력 1 신호 래치
 }}
-else {if(Latch1==1){ // If machine input 1 is low && previous switch state was high
-Output1=0; // Deactivate machine output 1
-Latch1=0; // Delatch internal machine input 1 signal
+else {if(Latch1==1){ // 기계 입력 1이 Low이고 이전 스위치 상태가 High였다면
+Output1=0; // 기계 출력 1 비활성화
+Latch1=0; // 기계 입력 1 신호 래치 해제
 }}}
 close
 
 
-// === One-shot home + jog PLC for Motor #1 (source: TRN p298) ===
-// Homes motor 1, waits for it to finish, then jogs to 2000 cts absolute.
-// Requires the Timer subprogram above.
+// === 1회성 home + jog PLC (모터 #1용) (source: TRN p298) ===
+// 모터 1을 home(원점복귀)시키고 완료를 기다린 뒤 절대 위치 2000 cts로 jog(조그)한다.
+// 위의 Timer 서브프로그램이 필요하다.
 open plc jog_home
-home 1; // Home motor 1
-call Timer(0.01); // Wait a small period to force the command to execute
-while(Motor[1].InPos == 0 || Motor[1].HomeComplete == 0){} // Wait to finish
-jog1=2000; // Jog motor 1 to 2000 cts
-call Timer(0.01); // Wait a small period to force the command to execute
-while(Motor[1].InPos == 0){} // Wait to finish
+home 1; // 모터 1 home(원점복귀)
+call Timer(0.01); // 명령이 실행되도록 짧은 시간 대기
+while(Motor[1].InPos == 0 || Motor[1].HomeComplete == 0){} // 완료 대기
+jog1=2000; // 모터 1을 2000 cts 위치로 jog(조그)
+call Timer(0.01); // 명령이 실행되도록 짧은 시간 대기
+while(Motor[1].InPos == 0){} // 완료 대기
 disable plc jog_home
 close
 
 
-// === Edge-triggered jog PLC with I/O (source: TRN p299) ===
-// Jog Motor #1 forward while machine input 1 is high; closed-loop stop when low.
+// === I/O 연동 에지 트리거 jog PLC (source: TRN p299) ===
+// 기계 입력 1이 High인 동안 모터 #1을 정방향으로 jog(조그); Low가 되면 폐루프 정지.
 open plc jog_io
 Latch1 = Input1;
 while(1)
 {
-if(Input1==1) // Machine input 1 is high
+if(Input1==1) // 기계 입력 1이 High
 {
-if(Latch1==0) // Machine input 1 latch was low
+if(Latch1==0) // 기계 입력 1 래치가 Low였다면
 {
-Latch1=1; // Bring machine input 1 latch high
-jog+1; // Jog forward
+Latch1=1; // 기계 입력 1 래치를 High로
+jog+1; // 정방향 jog(조그)
 }
 }
-else // Machine input 1 is low
+else // 기계 입력 1이 Low
 {
-if(Latch1==1) // Machine input 1 was high
+if(Latch1==1) // 기계 입력 1이 High였다면
 {
-Latch1=0; // Bring machine input latch low
-jog/1; // Stop jogging
+Latch1=0; // 기계 입력 래치를 Low로
+jog/1; // jog(조그) 정지
 }
 }
 }
 close
 
 
-// === Interactive motor jog PLC (continuous mode) (source: UM p879) ===
-// A single motor selected out of #1-#8 can be jogged in "continuous" mode,
-// positive or negative. Each scan, while the button is pressed, the motor is
-// commanded to jog its "deceleration distance" (V^2/A/2 or V^2*Ta/2) from
-// the present position.
+// === 인터랙티브 모터 jog PLC (연속 모드) (source: UM p879) ===
+// #1~#8 중 하나의 모터를 정방향/역방향으로 "연속(continuous)" 모드로 jog(조그)할 수 있다.
+// 버튼이 눌려 있는 동안 매 스캔마다, 현재 위치에서 "감속 거리"
+// (V^2/A/2 또는 V^2*Ta/2)만큼 jog(조그) 명령이 발행된다.
 
-// Declarations of input variables -- application specific
+// 입력 변수 선언 -- 애플리케이션에 따라 달라짐
 ptr MotorSelectSw->u.io:$A00000.8.3;
 ptr JogMinusButton->u.io:$A00000.12.1;
 ptr JogPlusButton->u.io:$A00000.13.1;
@@ -96,12 +95,12 @@ global JogDecelDist = 500;
 
 open plc 1
 
-local JogMotor;   // # of motor selected for jogging
-local JogMotorStatus;   // Present state of selected motor
+local JogMotor;   // jog(조그) 대상으로 선택된 모터 번호
+local JogMotorStatus;   // 선택된 모터의 현재 상태
 
-if (JogMotorStatus == 0) {  // No motor jogging?
-  JogMotor = MotorSelectSw + 1; // Read switch to select motor
-  Ldata.Motor = JogMotor;  // Specify motor for jog commands
+if (JogMotorStatus == 0) {  // jog(조그) 중인 모터 없음?
+  JogMotor = MotorSelectSw + 1; // 스위치를 읽어 모터 선택
+  Ldata.Motor = JogMotor;  // jog 명령의 대상 모터 지정
 }
 if (JogMinusButton && JogMotorStatus <= 0) {
   jog:(-JogDecelDist);
@@ -113,5 +112,69 @@ else {
     JogMotorStatus = 1;
   }
   else JogMotorStatus = 0;
+}
+close
+
+
+// ============================================================================
+// === limit-find -> home-sensor 호밍 (라이브 CK3M 2모터 검증) ===
+// 각 PLC가 셋업+시퀀스를 모두 포함 -> "enable plc + 트리거변수"만으로 전체 호밍
+// 수행(online 명령 불필요). 위치 검증은 항상 Motor[x].ActPos - Motor[x].HomePos.
+// 시퀀스: 음방향 jog -> 마이너스 리미트 -> 반전/+이동 -> home 센서 -> 완료.
+// ============================================================================
+
+// --- Motor 1 : 로컬 CK3WAX(G5). home flag는 Gate3 하드웨어 캡처 사용 ---
+// 트리거: P11=0 후 P1=1 (1회성). 상태=P11(10=완료).
+// 주의: native limit(pLimits 설정됨)이라 리미트 시 자동 abort -> 직후 명령이
+//       묻히므로 Sys.CdTimer로 200ms 정착 후 home 발행.
+open plc 1
+if (P1==1) {
+  switch (P11) {
+    case 0:                               // 셋업(1회) + 음방향 조그
+      Sys.WpKey=$AAAAAAAA;                // Gate3 쓰기 잠금 해제
+      CK3WAX[0].Chan[0].CaptCtrl=10;      // 캡처=home flag low (2=상승,10=하강,1=인덱스)
+      CK3WAX[0].Chan[0].CaptFlagSel=0;    // flag 선택: 0=home,1=+lim,2=-lim,3=user
+      Motor[1].HomeVel=2;                 // 홈 탐색 +방향(리미트에서 멀어짐)
+      jog-1;                              // 음방향 조그 시작
+      P11=1;
+      break;
+    case 1:                               // 마이너스 리미트 도달 -> 정지 + 정착
+      if (Motor[1].MinusLimit==1) { jog/1; Sys.CdTimer[1]=200; P11=2; }
+      break;
+    case 2:                               // 200ms 후 home 발행(+이동, flag 캡처)
+      if (Sys.CdTimer[1]<=0) { home 1; P11=3; }
+      break;
+    case 3:                               // 홈 완료 대기
+      if (Motor[1].HomeComplete==1) { P11=10; P1=0; }
+      break;
+  }
+}
+close
+
+// --- Motor 2 : EtherCAT 1S(CSP). 60FD 디지털입력 비트를 PLC가 직접 판정 ---
+// 60FD = ECAT[0].IO[4104]: bit1=NOT(마이너스리미트), bit17=Home(상승=감지), active-high.
+// 트리거: P12=0 후 P2=1 (1회성). 상태=P12(10=완료). 시작 시 Home 센서는 OFF여야 함.
+// 주의: pLimits=0으로 native limit를 꺼서 abort가 없으므로 off-limit jog+가 즉시
+//       먹는다(로컬 M1과 달리 정착 지연 불필요). 완료는 homez(현위치=홈).
+open plc 2
+if (P2==1) {
+  switch (P12) {
+    case 0:                               // native limit 끄고 음방향 조그
+      Motor[2].pLimits=0;
+      Motor[2].HomeOffset=0;
+      jog-2;
+      P12=1;
+      break;
+    case 1:                               // 마이너스 리미트(bit1) -> 정지
+      if ((ECAT[0].IO[4104].Data & 2)!=0) { jog/2; P12=2; }
+      break;
+    case 2:                               // 반전: +방향 home 탐색 시작
+      jog+2;
+      P12=3;
+      break;
+    case 3:                               // Home 센서(bit17) 상승 -> 정지 + homez
+      if ((ECAT[0].IO[4104].Data & 131072)!=0) { jog/2; homez 2; P12=10; P2=0; }
+      break;
+  }
 }
 close

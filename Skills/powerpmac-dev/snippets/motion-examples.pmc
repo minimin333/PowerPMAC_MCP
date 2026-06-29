@@ -1,141 +1,141 @@
-// Power PMAC Script motion program examples
-// Harvested verbatim from the Power PMAC User's Manual (UM).
-// Adapt coordinate-system setup and axis definitions to your machine.
+// Power PMAC Script 모션 프로그램 예제 모음
+// Power PMAC User's Manual(UM)에서 그대로 수집한 코드.
+// 좌표계 설정 및 축 정의는 실제 기계에 맞게 수정할 것.
 
-// === Minimal linear move, out and back (source: UM p867) ===
-// A typical coordinate system setup for this program is like:
-// &1     // Address C.S. 1
-// #1->1000X    // Motor 1 assigned to X-axis, 1000 counts/unit
+// === 최소한의 linear 왕복 이동 (source: UM p867) ===
+// 이 프로그램의 일반적인 좌표계 설정 예:
+// &1     // C.S. 1 지정
+// #1->1000X    // 모터 1을 X축에 할당, 1000 counts/unit
 
-// Motion program code
-open prog 1    // Open buffer for entry
-linear;     // Linear interpolation move mode
-abs;     // Absolute move mode
-ta500;     // 1/2-second accel/decel time
-ts0;     // No S-curve accel/decel time
-f5;     // Speed of 5 axis units per time unit
-X10;     // Move X-axis to position of 10 units
-dwell500;    // Sit here for 1/2-second
-X0;     // Move X-axis to position of 0 units
-dwell500;    // Sit here for 1/2-second
-close     // Close buffer, end program entry
+// 모션 프로그램 코드
+open prog 1    // 프로그램 버퍼 열기
+linear;     // linear 보간 이동 모드
+abs;     // 절대 이동 모드
+ta500;     // 가감속 시간 1/2초
+ts0;     // S-curve 가감속 없음
+f5;     // 속도 5 axis unit/time unit
+X10;     // X축을 10 unit 위치로 이동
+dwell500;    // 1/2초 유지
+X0;     // X축을 0 unit 위치로 이동
+dwell500;    // 1/2초 유지
+close     // 버퍼 닫기, 프로그램 입력 종료
 
-// To run this program with C.S. 1, issue these on-line commands:
+// C.S. 1로 이 프로그램을 실행하려면 온라인 명령을 입력한다:
 // &1 b1r
 
 
-// === Move sequence with looping, S-curve, and variables (source: UM p868) ===
-// A typical coordinate system setup for this program is like:
-// &1     // Address C.S. 1
-// #2->1000Y    // Motor 2 assigned to Y-axis, 1000 counts/unit
+// === 루프·S-curve·변수를 사용하는 이동 시퀀스 (source: UM p868) ===
+// 이 프로그램의 일반적인 좌표계 설정 예:
+// &1     // C.S. 1 지정
+// #2->1000Y    // 모터 2를 Y축에 할당, 1000 counts/unit
 
-// Motion program code
+// 모션 프로그램 코드
 open prog 2
 
-local LoopCount;   // Loop counter index
+local LoopCount;   // 루프 카운터 인덱스
 
-linear;     // Linear interpolation move mode
-inc;     // Incremental move mode
-ta500;     // 1/2-second accel time
-td1000;     // 1-second decel time
-ts250;     // 1/4-second S-curve accel/decel time
-tm2000;     // 2-second move time
-Gather.Enable = 2;   // Start data gathering
-LoopCount = 1;    // Initialize counter index
-while (LoopCount <= 10) {  // Loop until false (10 times)
-  Y10;     // Move distance of 10 units positive
-  dwell500;    // Stay here for 1/2-second
-  Y-10;     // Move distance of 10 units negative
-  dwell500;    // Stay here for 1/2-second
-  if (LoopCount == 2) Gather.Enable = 0; // Stop gathering on 2nd loop
-  LoopCount++;    // Increment loop counter
-}     // End of while loop
+linear;     // linear 보간 이동 모드
+inc;     // 증분 이동 모드
+ta500;     // 가속 시간 1/2초
+td1000;     // 감속 시간 1초
+ts250;     // S-curve 가감속 시간 1/4초
+tm2000;     // 이동 시간 2초
+Gather.Enable = 2;   // 데이터 수집 시작
+LoopCount = 1;    // 카운터 인덱스 초기화
+while (LoopCount <= 10) {  // 조건이 false가 될 때까지 반복(10회)
+  Y10;     // Y축을 +10 unit만큼 이동
+  dwell500;    // 1/2초 유지
+  Y-10;     // Y축을 -10 unit만큼 이동
+  dwell500;    // 1/2초 유지
+  if (LoopCount == 2) Gather.Enable = 0; // 2번째 루프에서 수집 중지
+  LoopCount++;    // 루프 카운터 증가
+}     // while 루프 종료
 close
 
 
-// === Blended linear + circular interpolation contour (source: UM p870-871) ===
-// Coordinated, blended moves with rapid, linear, and circle1/circle2
-// interpolation in a Cartesian system.
+// === linear + 원호 보간 혼합 윤곽 이동 (source: UM p870-871) ===
+// 직교 좌표계에서 rapid, linear, circle1/circle2 보간을 사용한
+// 협조·혼합(blended) 이동 예.
 ptr DispensePumpOn->u.io:$A0000C.12.1; //IO Card 0 IO Point 28
-Coord[1].SegMoveTime = 5;   // Segmentation time of 5 msec
+Coord[1].SegMoveTime = 5;   // 세그멘테이션 시간 5 msec
 
 open prog 4
-abs;      // Absolute end-point specification
-normal k-1;     // XY-plane specification for circles
-Gather.Enable = 2;    // Start data gathering
-rapid x1 y4;     // Rapid mode move to (1,4)
-dwell 20;     // Hold position for 20 msec
-DispensePumpOn = 1;    // Turn on dispensing pump
-dwell 50;     // Hold position for 50 msec
-f50; ta100; ts50;    // Params for linear & circle moves
-linear y13;     // Straight-line move to (1,13)
-circle1 x2 y14 i1 j0;    // CW arc to (2,14) about (2,13)
-linear x3;     // Straight-line move to (3,14)
-circle1 x4 y13 i0 j-1;    // CW arc to (4,13) about (3,13)
-linear y7;     // Straight-line move to (4,7)
-circle2 x7 y4 i3 j0;    // CCW arc to (7,4) about (7,7)
-linear x13;     // Straight-line move to (13,4)
-circle1 x14 y3 i0 j-1;    // CW arc to (14,3) about (13,3)
-linear y2;     // Straight-line move to (14,2)
-circle1 x13 y1 i-1 j0;    // CW arc to (13,1) about (13,2)
-linear x4;     // Straight-line move to (4,1)
-circle1 x1 y4 i0 j3;    // CW arc to (1,4) about (4,4)
-dwell 0;     // Stop blending and lookahead
-DispensePumpOn = 0;    // Turn off dispensing pump
-rapid x0 y0;     // Return to home position
-Gather.Enable = 0;    // Stop data gathering
+abs;      // 절대 끝점 지정
+normal k-1;     // 원호에 대한 XY 평면 지정
+Gather.Enable = 2;    // 데이터 수집 시작
+rapid x1 y4;     // rapid 모드로 (1,4)로 이동
+dwell 20;     // 20 msec 유지
+DispensePumpOn = 1;    // 디스펜싱 펌프 켜기
+dwell 50;     // 50 msec 유지
+f50; ta100; ts50;    // linear & circle 이동용 파라미터
+linear y13;     // (1,13)까지 직선 이동
+circle1 x2 y14 i1 j0;    // (2,13) 중심, (2,14)까지 시계방향 호
+linear x3;     // (3,14)까지 직선 이동
+circle1 x4 y13 i0 j-1;    // (3,13) 중심, (4,13)까지 시계방향 호
+linear y7;     // (4,7)까지 직선 이동
+circle2 x7 y4 i3 j0;    // (7,7) 중심, (7,4)까지 반시계방향 호
+linear x13;     // (13,4)까지 직선 이동
+circle1 x14 y3 i0 j-1;    // (13,3) 중심, (14,3)까지 시계방향 호
+linear y2;     // (14,2)까지 직선 이동
+circle1 x13 y1 i-1 j0;    // (13,2) 중심, (13,1)까지 시계방향 호
+linear x4;     // (4,1)까지 직선 이동
+circle1 x1 y4 i0 j3;    // (4,4) 중심, (1,4)까지 시계방향 호
+dwell 0;     // 블렌딩 및 룩어헤드 정지
+DispensePumpOn = 0;    // 디스펜싱 펌프 끄기
+rapid x0 y0;     // home(원점) 위치로 복귀
+Gather.Enable = 0;    // 데이터 수집 중지
 close
 
 
-// === Coordinated path: linear + circle by radius (source: UM p872) ===
-// Uses circle2 ... R10 form (arc specified by radius rather than I/J/K vector).
-// Coordinated path motion example
+// === 협조 경로: linear + 반지름 지정 circle 이동 (source: UM p872) ===
+// I/J/K 벡터 대신 반지름으로 호를 지정하는 circle2 ... R10 형식 사용.
+// 협조 경로 모션 예제
 open prog 5
-normal k-1;    // XY plane for circles
-abs;     // Absolute endpoint specification
-F200;     // Vector speed of 200 mm/sec
-ta25; ts0;    // 25 msec accel/decel time, no S-curve
-Gather.Enable=2;   // Start data gathering
-linear X60 Y0;    // Straight move to (60,0)
-circle2 X60 Y20 R10;   // CCW arc of radius 10 to (60,20)
-linear X-60 Y20;   // Straight move to (-60,20)
-circle2 X-60 Y0 R10;   // CCW arc of radius 10 to (-60,0)
-linear X0 Y0;    // Straight move to (0,0)
-dwell 100;    // Hold position for 100 msec
-Gather.Enable=0;   // Stop data gathering
+normal k-1;    // 원호에 대한 XY 평면 지정
+abs;     // 절대 끝점 지정
+F200;     // 벡터 속도 200 mm/sec
+ta25; ts0;    // 가감속 시간 25 msec, S-curve 없음
+Gather.Enable=2;   // 데이터 수집 시작
+linear X60 Y0;    // (60,0)까지 직선 이동
+circle2 X60 Y20 R10;   // 반지름 10의 반시계방향 호로 (60,20)까지
+linear X-60 Y20;   // (-60,20)까지 직선 이동
+circle2 X-60 Y0 R10;   // 반지름 10의 반시계방향 호로 (-60,0)까지
+linear X0 Y0;    // (0,0)까지 직선 이동
+dwell 100;    // 100 msec 유지
+Gather.Enable=0;   // 데이터 수집 중지
 close
 
 
-// === Move with looping, branching, and I/O (source: UM p869-870) ===
-// Conditional branching, calculated distances, wait for in-position, I/O.
-// Variable declarations
+// === 루프·분기·I/O를 사용하는 이동 (source: UM p869-870) ===
+// 조건 분기, 계산된 거리, 위치 결정 대기, I/O 제어 예.
+// 변수 선언
 ptr LoopCtrlInput->u.io:$A00000.8.1;  // IO Card 0 Point 00
 ptr DirCtrlInput->u.io:$A00000.9.1;  // IO Card 0 Point 01
 ptr LaserOn->u.io:$A0000C.8.1;  // IO Card 0 Point 24
-csglobal MoveLength;    // Externally settable variable
+csglobal MoveLength;    // 외부에서 설정 가능한 변수
 
-MoveLength = 40;    // Set value for this example
+MoveLength = 40;    // 이 예제에서 사용할 값 설정
 
-// A typical coordinate system setup for this program is something like:
+// 이 프로그램의 일반적인 좌표계 설정 예:
 // &1
-// #3->1000Z    // Motor 3 assigned to Z-axis, 1000 counts/unit
+// #3->1000Z    // 모터 3을 Z축에 할당, 1000 counts/unit
 
-// Motion program code
+// 모션 프로그램 코드
 open prog 3
 
-local ThisCs;     // Local var for # of CS running program
+local ThisCs;     // 이 프로그램을 실행하는 CS 번호를 저장하는 로컬 변수
 
-ThisCs = Ldata.Coord;    // Set to # of CS running program
-rapid;      // Rapid move mode
-abs;      // Absolute end-point specification
-while (LoopCtrlInput) {   // Loop until control input false
-  if (DirCtrlInput) Z(MoveLength);  // Move in positive direction
-  else Z(-1.0*MoveLength);   // Move in negative direction
-  while (Coord[ThisCs].InPos == 0) {}  // Wait for settled
-  LaserOn = 1;     // Turn on laser control output
-  dwell100;     // Hold for 100 msec
-  LaserOn = 0;     // Turn off laser control output
-  Z0;      // Return to home position
-  dwell50;     // Hold for 50 msec
+ThisCs = Ldata.Coord;    // 현재 프로그램을 실행 중인 CS 번호로 설정
+rapid;      // rapid 이동 모드
+abs;      // 절대 끝점 지정
+while (LoopCtrlInput) {   // 제어 입력이 false가 될 때까지 반복
+  if (DirCtrlInput) Z(MoveLength);  // 양방향으로 이동
+  else Z(-1.0*MoveLength);   // 음방향으로 이동
+  while (Coord[ThisCs].InPos == 0) {}  // 위치 결정 완료 대기
+  LaserOn = 1;     // 레이저 제어 출력 켜기
+  dwell100;     // 100 msec 유지
+  LaserOn = 0;     // 레이저 제어 출력 끄기
+  Z0;      // home(원점) 위치로 복귀
+  dwell50;     // 50 msec 유지
 }
 close
