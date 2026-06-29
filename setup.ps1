@@ -178,12 +178,6 @@ Install-Skill
 
 if($SkillOnly){ Ok "SkillOnly 모드 — 완료. Claude Code 재시작 후 Power PMAC 질문이 동작합니다."; return }
 
-if(-not (Get-Command dotnet -ErrorAction SilentlyContinue)){
-  Warn ".NET SDK(dotnet)가 없어 MCP를 빌드할 수 없습니다. Skill만 설치됨."
-  Warn "  -> https://dotnet.microsoft.com/download 설치 후 다시 실행하세요."
-  return
-}
-
 $script:Compilers = Find-Compilers
 $pdk = Find-Pdk $PdkHome
 if(-not $pdk){
@@ -193,6 +187,41 @@ if(-not $pdk){
 }
 Ok "PDK = $pdk"
 if($script:Compilers){ Ok "Compilers = $script:Compilers" } else { Warn "컴파일러 미발견 — C 빌드/다운로드가 제한될 수 있습니다(Power PMAC IDE 설치 권장)." }
+
+# ---- .NET SDK 확인 (빌드엔 런타임이 아니라 SDK 필요; 없으면 자동 설치 시도 → 실패 시 링크) ----
+# 런타임만 있어도 'dotnet' 명령은 존재하므로, 'dotnet --list-sdks'로 SDK 설치 여부를 정확히 본다.
+$sdks = if(Get-Command dotnet -ErrorAction SilentlyContinue){ & dotnet --list-sdks 2>$null } else { $null }
+if(-not $sdks){
+  Warn ".NET SDK가 없습니다 — MCP 빌드에는 런타임이 아니라 SDK가 필요합니다."
+
+  # 1) winget이 있으면 winget으로 (머신 전역 설치)
+  if(Get-Command winget -ErrorAction SilentlyContinue){
+    Info "winget으로 .NET SDK 자동 설치를 시도합니다 (수 분 소요)..."
+    & winget install --id Microsoft.DotNet.SDK.8 -e --silent --accept-package-agreements --accept-source-agreements | Out-Host
+    $sdks = if(Get-Command dotnet -ErrorAction SilentlyContinue){ & dotnet --list-sdks 2>$null } else { $null }
+  }
+
+  # 2) winget이 없거나 실패하면 Microsoft 공식 dotnet-install 스크립트로 사용자 폴더(~/.dotnet)에 설치.
+  #    winget 자체를 설치하는 것보다 견고하다(의존성/권한 문제 없음, 관리자 권한 불필요).
+  if(-not $sdks){
+    try {
+      Info "Microsoft 공식 스크립트로 .NET SDK 설치를 시도합니다 (~/.dotnet, 관리자 권한 불필요)..."
+      $dotnetDir = Join-Path $env:USERPROFILE '.dotnet'
+      $installer = Join-Path $env:TEMP 'dotnet-install.ps1'
+      Invoke-WebRequest 'https://dot.net/v1/dotnet-install.ps1' -OutFile $installer -UseBasicParsing
+      & $installer -Channel 8.0 -InstallDir $dotnetDir -NoPath | Out-Host
+      $env:PATH = "$dotnetDir;$env:PATH"   # 이 세션에서 방금 설치한 dotnet 을 사용
+      $sdks = & "$dotnetDir\dotnet.exe" --list-sdks 2>$null
+    } catch { Warn "dotnet-install 스크립트 실패: $($_.Exception.Message)" }
+  }
+
+  if(-not $sdks){
+    Warn "SDK를 준비하지 못했습니다 (인터넷/권한 확인) — Skill은 설치 완료. .NET SDK 설치 후 setup.ps1 을 다시 실행하세요:"
+    Warn "  -> https://dotnet.microsoft.com/download/dotnet/8.0"
+    return
+  }
+  Ok ".NET SDK 준비 완료."
+}
 
 # ---- 2. MCP 빌드 -------------------------------------------------------
 Info "MCP 서버 빌드 중 (x86/net48)..."
