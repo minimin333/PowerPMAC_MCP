@@ -22,6 +22,12 @@ product-specific numbers are examples. Full raw text: `reference/raw/edu/` (loca
 4. **Clocks** (System → CPU → System): set Phase / Servo / RealTime(RTI) freq per #motors & load.
    Phase = commutation + current loop (highest prio); Servo = commanded-position update rate;
    RTI = motion planning + foreground PLC.
+   - Script/MCP: set `Gate3[i].PhaseFreq` (CK3M AX unit: `CK3WAX[i].PhaseFreq`; firmware snaps to nearest)
+     + `ServoClockDiv` (ServoFreq = PhaseFreq/(ServoClockDiv+1)), **and separately** `Sys.ServoPeriod`
+     (= 1000/ServoFreqHz, ms) + `Sys.PhaseOverServoPeriod` — these two are independent SAVED params, **not**
+     auto-derived from the Gate clock. `Sys.WpKey=$AAAAAAAA` to unlock, then `save`+`$$$`. After reset, give
+     the controller a moment before reading — clock-derived values (`Sys.ServoPeriod`…) read **stale**
+     immediately post-reset. Verify true rate from two `Sys.ServoCount` samples (ΔCount/Δwall-time).
 
 ## Local motor setup (analog ±10V or Direct-PWM; e.g. CK3M + AX card + servo drive)
 Wizard: right-click **Motors → Add a Motor → topology "Single Feedback"**, then:
@@ -36,6 +42,15 @@ Wizard: right-click **Motors → Add a Motor → topology "Single Feedback"**, t
 7. **Test & Set** (DC bias offset etc.; may need retries) → motor ready for tuning.
 - **Pointer model**: outputs/feedback are set by address, e.g. `Motor[1].pDac = Gate3[0].Chan[0].Pwm[0].a`
   (`.a` = address-of an element; leading `p` = pointer-to). 
+- **CK3M AX unit**: the axis-interface unit (e.g. CK3W-AX1515N) is structure **`CK3WAX[i]`** with `.Chan[0..3]`,
+  *not* `Gate3[i]` — clocks and channel registers live there (`CK3WAX[0].Chan[0].Pwm[0].a`/`.Dac[0].a` alias
+  the same analog out; `.ServoCapt.a`, `.OutCtrl.a`, `.Status.a`). Factory default already wires `Motor[1]`
+  to `CK3WAX[0].Chan[0]` as a single-feedback analog motor (`PhaseCtrl=0`, drive commutates).
+- **Amp-fault status latches**: once tripped it clears only on an enable (`#xj/`) — *not* by flipping
+  `AmpFaultLevel`, toggling `ServoCtrl`, or `#xk`. Set `AmpFaultLevel` to the drive's **healthy** fault-line
+  level: an OMRON G5 analog drive's ALM is fail-safe (line low when healthy) → `AmpFaultLevel=1`.
+- **Changing scaling (`Motor[].PosSf`) live, then enabling, makes the motor jump/runaway** — set scaling
+  first, then `save`+`$$$` so it applies cleanly from boot, *then* enable.
 
 ## Tuning (position loop)
 Auto/Basic = one-touch "Start Tuning" → Accept → Servo On + jog to verify.
@@ -84,6 +99,28 @@ Steps:
 7. **Build & Download**, then enable the net: `ECAT[0].Enable=1` (or right-click master → Active EtherCAT).
 8. *Watch EtherCAT Mapped Variables* to verify cyclic updates.
 - PDO-mapped elements have long generated names, e.g. `Slave_1001_…_60FD_0_Digitalinputs.a`.
+- The scan generates `Project/PMAC Script Language/Global Includes/ECATMap.pmh` with
+  `#define Slave_<pos>_<model>_<idx>_<sub>_<name>  ECAT[0].IO[n].Data` — **outputs `IO[0..]`, inputs `IO[4096..]`**.
+  The scan + PDO map + *Load Mapping to PMAC* is an **IDE-only** step (firmware master = acontis; a pure
+  terminal/script session cannot generate the named map). Once mapped, motor assignment IS scriptable:
+
+### EtherCAT CiA402 (CSP) motor — element-level assignment (script/MCP, after mapping)
+A motor can be bound to a CiA402 drive **without the Add-Motor wizard**, pointing at the `ECAT[0].IO[n].Data`
+entries above (verified live on an OMRON 1S):
+- **Feedback**: `EncTable[k].type=1`, `.pEnc=ECAT[0].IO[<6064 actual>].Data.a`, `.pEnc1=Sys.pushm`,
+  `.index1..6=0`, `.ScaleFactor=1` → reads the 32-bit Position-actual register. **type 1, not 11**
+  (type 1 reads a plain 32-bit register when the indices are 0). Then `Motor[x].pEnc=pEnc2=EncTable[k].a`.
+- **Command (CSP)**: `Motor[x].pDac=ECAT[0].IO[<607A target>].Data.a` (the servo output IS the target position).
+- **Enable/fault**: `Motor[x].pAmpEnable=ECAT[0].IO[<6040 controlword>].Data.a` (PMAC auto-runs the CiA402
+  state machine: Switch-On-Disabled→Ready→…→Operation-Enabled), `Motor[x].pAmpFault=ECAT[0].IO[<6041
+  statusword>].Data.a`, `Motor[x].AmpFaultBit=3` (statusword Fault bit), set `AmpFaultLevel`.
+- `Motor[x].PhaseCtrl=0` (drive commutates); scaling `Motor[x].PosSf=Pos2Sf` (e.g. user-units / 2^encbits).
+- **★ `Motor[x].Ctrl=Sys.PosCtrl` — REQUIRED for CSP.** Default `Ctrl` runs a torque/PID loop, so the target
+  register (607A) is never written (stays 0); the drive then trips on position deviation (OMRON 1S error
+  `$FF24`, statusword Fault bit) on every enable. `Sys.PosCtrl` passes the commanded position straight to
+  `pDac`, so the **drive** closes the loop. Easy to miss when copying a motor — `Motor[].Ctrl` must be copied
+  too, not just pointers/scale/gains.
+- Enable with `#xj/`; the target syncs to actual at enable (no jump) and the CiA402 fault latch clears.
 
 ## EtherCAT limits & homing (pointers into PDO)
 - **Limits**: `Motor[n].pLimits = Slave_…_60FD_0_Digitalinputs.a`; `Motor[n].LimitBits`
