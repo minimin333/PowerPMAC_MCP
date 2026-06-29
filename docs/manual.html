@@ -194,6 +194,16 @@
   <div class="callout">
     <p>⚠️ <strong>MCP를 쓰려면 Power PMAC IDE + PDK 설치가 필수입니다.</strong> PDK가 제공하는 컴파일러·rsync·라이선스(<code>CLLLicFile.lic</code>)가 있어야 빌드·다운로드가 됩니다. PDK가 없는 PC는 아래 <strong>Skill만 설치</strong>(<code>-SkillOnly</code>)로 코드 작성·리뷰만 사용하세요.</p>
   </div>
+  <h3>방법 A — 플러그인 마켓플레이스 (권장: Skill만 · 자동 업데이트, git pull 불필요)</h3>
+  <p>코드 작성·리뷰만 한다면 <strong>Claude Code 플러그인</strong>이 가장 간단합니다. <code>git clone</code>·<code>setup.ps1</code> 없이 설치되고, <strong><code>git pull</code> 없이 자동으로 최신 지식으로 갱신</strong>됩니다.</p>
+<pre><code>/plugin marketplace add minimin333/PowerPMAC_MCP
+/plugin install powerpmac-dev@powerpmac</code></pre>
+  <ul>
+    <li><strong>자동 업데이트 켜기(1회)</strong>: <code>/plugin</code> → <strong>Marketplaces</strong> 탭 → <code>powerpmac</code> 선택 → auto-update 활성화. 이후 Claude Code 시작 시 자동 최신화(알림이 뜨면 <code>/reload-plugins</code>).</li>
+    <li><strong>수동 업데이트</strong>: <code>/plugin update powerpmac-dev@powerpmac</code>.</li>
+    <li>플러그인은 <strong>Skill 지식만</strong> 제공합니다. <strong>컨트롤러 제어(MCP)</strong>까지 필요하면 아래 <strong>방법 B</strong>를 쓰세요.</li>
+  </ul>
+  <h3>방법 B — git clone + setup.ps1 (MCP 포함 / 지식 직접 편집)</h3>
   <p>사내 저장소를 clone하고 <code>setup.ps1</code>을 한 번 실행하면 <strong>Skill 설치 · PDK/컴파일러 자동 감지 · MCP 빌드 · 등록</strong>까지 자동으로 처리됩니다. 경로는 자동 감지되어 직접 편집할 필요가 없습니다.</p>
   <p><strong>Skill + MCP (PDK 설치된 PC):</strong></p>
 <pre><code>git clone https://github.com/minimin333/PowerPMAC_MCP.git C:\Tools\PowerPMAC_MCP
@@ -368,7 +378,7 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly</code></pre>
   <table>
     <thead><tr><th>증상</th><th>조치</th></tr></thead>
     <tbody>
-      <tr><td>질문해도 Skill이 안 먹는 듯</td><td>Claude Code <strong>재시작</strong>. <code>~/.claude/skills/powerpmac-dev</code> 연결 확인(없으면 <code>setup.ps1 -SkillOnly</code> 재실행).</td></tr>
+      <tr><td>질문해도 Skill이 안 먹는 듯</td><td>Claude Code <strong>재시작</strong>. 플러그인 설치자는 <code>/plugin</code>에서 <code>powerpmac-dev</code> 설치 상태 확인(필요 시 <code>/plugin update</code>). setup.ps1 설치자는 <code>~/.claude/skills/powerpmac-dev</code> 연결 확인(없으면 <code>setup.ps1 -SkillOnly</code> 재실행).</td></tr>
       <tr><td><code>claude mcp list</code>에 <code>powerpmac</code>이 없음</td><td><code>setup.ps1</code> 재실행 후 <strong>재시작</strong>. <code>claude</code>가 PATH에 없으면 setup.ps1이 출력한 <code>claude mcp add ...</code> 명령을 직접 실행.</td></tr>
       <tr><td>PDK를 못 찾음(빌드 실패)</td><td><code>setup.ps1 -PdkHome "C:\...\PDK"</code> (CLLLicFile.lic 있는 폴더 지정). IDE/PDK 설치 확인.</td></tr>
       <tr><td>빌드가 파일 잠금 오류</td><td>실행 중 MCP가 exe를 잠그므로 <strong>Claude Code 종료</strong> 후 <code>setup.ps1</code> 재실행.</td></tr>
@@ -383,7 +393,7 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly</code></pre>
     <li><code>README.md</code> — 저장소 개요</li>
     <li><code>INSTALL.md</code> — 설치·업데이트·문제 해결 상세</li>
     <li><code>mcp-server/README.md</code> — MCP 동작 원리(헤드리스 PTY, rsync + projpp 등)</li>
-    <li><code>Skills/powerpmac-dev/SKILL.md</code> — Skill이 참조하는 지식 구조</li>
+    <li><code>plugins/powerpmac-dev/skills/powerpmac-dev/SKILL.md</code> — Skill이 참조하는 지식 구조(플러그인 레이아웃)</li>
   </ul>
 
   <hr>

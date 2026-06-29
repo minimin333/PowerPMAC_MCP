@@ -96,6 +96,24 @@ Claude Code에 두 가지가 더해집니다 — 지식을 주는 **Skill**과, 
 > PDK가 제공하는 컴파일러·rsync·라이선스(`CLLLicFile.lic`)가 있어야 빌드·다운로드가 됩니다.
 > PDK가 없는 PC는 아래 **Skill만 설치**(`-SkillOnly`)로 코드 작성·리뷰만 사용하세요.
 
+### 방법 A — 플러그인 마켓플레이스 (권장: Skill만 쓸 때 · 자동 업데이트)
+
+코드 작성·리뷰만 한다면 **Claude Code 플러그인**이 가장 간단합니다. `git clone`·`setup.ps1` 없이
+설치되고, **`git pull` 없이 자동으로 최신 지식으로 갱신**됩니다.
+
+```text
+/plugin marketplace add minimin333/PowerPMAC_MCP
+/plugin install powerpmac-dev@powerpmac
+```
+
+- **자동 업데이트 켜기(1회)**: `/plugin` → **Marketplaces** 탭 → `powerpmac` 선택 → auto-update 활성화.
+  이후 Claude Code 시작 시 자동 최신화(알림이 뜨면 `/reload-plugins`).
+- **수동 업데이트**: `/plugin update powerpmac-dev@powerpmac`.
+- **팀 일괄 적용**: 프로젝트 `.claude/settings.json`의 `extraKnownMarketplaces`(autoUpdate:true) + `enabledPlugins`에 등록(→ `INSTALL.md`).
+- 플러그인은 **Skill 지식만** 제공합니다. **컨트롤러 제어(MCP)** 까지 필요하면 아래 **방법 B**를 쓰세요.
+
+### 방법 B — git clone + setup.ps1 (MCP 포함 / 지식 직접 편집)
+
 사내 저장소를 clone하고 `setup.ps1`을 한 번 실행하면 **Skill 설치 · PDK/컴파일러 자동 감지 · MCP 빌드 · 등록**까지 자동으로 처리됩니다. 경로는 자동 감지되어 직접 편집할 필요가 없습니다.
 
 **Skill + MCP (PDK 설치된 PC):**
@@ -223,7 +241,7 @@ flowchart TD
 
 | 증상 | 조치 |
 |---|---|
-| 질문해도 Skill이 안 먹는 듯 | Claude Code **재시작**. `~/.claude/skills/powerpmac-dev` 연결 확인(없으면 `setup.ps1 -SkillOnly` 재실행). |
+| 질문해도 Skill이 안 먹는 듯 | Claude Code **재시작**. 플러그인 설치자는 `/plugin`에서 `powerpmac-dev` 설치 상태 확인(필요 시 `/plugin update`). setup.ps1 설치자는 `~/.claude/skills/powerpmac-dev` 연결 확인(없으면 `setup.ps1 -SkillOnly` 재실행). |
 | `claude mcp list`에 `powerpmac`이 없음 | `setup.ps1` 재실행 후 **재시작**. `claude`가 PATH에 없으면 setup.ps1이 출력한 `claude mcp add ...` 명령을 직접 실행. |
 | PDK를 못 찾음(빌드 실패) | `setup.ps1 -PdkHome "C:\...\PDK"` (CLLLicFile.lic 있는 폴더 지정). IDE/PDK 설치 확인. |
 | 빌드가 파일 잠금 오류 | 실행 중 MCP가 exe를 잠그므로 **Claude Code 종료** 후 `setup.ps1` 재실행. |
@@ -239,7 +257,7 @@ flowchart TD
 - `README.md` — 저장소 개요
 - `INSTALL.md` — 설치·업데이트·문제 해결 상세
 - `mcp-server/README.md` — MCP 동작 원리(헤드리스 PTY, rsync + projpp 등)
-- `Skills/powerpmac-dev/SKILL.md` — Skill이 참조하는 지식 구조
+- `plugins/powerpmac-dev/skills/powerpmac-dev/SKILL.md` — Skill이 참조하는 지식 구조(플러그인 레이아웃)
 
 ---
 
