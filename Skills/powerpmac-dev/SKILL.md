@@ -36,6 +36,9 @@ This file is the map + the safety summary; open the `reference/` file for depth.
 | **Authoritative element list** (every `Structure.Element`, from firmware intellisense tables) | `reference/firmware/ELEMENTS_INDEX.md` + grep `reference/firmware/pp_swtbl*.txt` |
 | Pitfalls: task model, save/reset, units, motion safety, error IDs | `reference/gotchas.md` |
 | **Project structure**: folder layout, file types, `.ppproj` manifest, `pp_proj.ini` load order, on-controller `/var/ftp/usrflash/Project` mapping | `reference/project-structure.md` |
+| **IDE & motor bring-up**: IDE windows, system clocks, **local & EtherCAT motor setup**, PID tuning, jog params, homing (Gate3 capture / EtherCAT touch-probe), EtherCAT enable/reset; + MCP command mapping | `reference/setup-workflow.md` |
+| **Servo internals** (deep): encoder types/sub-count(1/T,arctangent)/ECT/EncLoss, commutation modes, phase referencing, sine vs Direct-PWM output | `reference/servo-internals.md` |
+| **Vendor course material** (deep-theory lectures + ODT training): topic→raw index; grep `reference/raw/edu/` for detail | `reference/lecture-series.md`, `reference/training-course.md` |
 | Domain → manual page map; how to regenerate the raw corpus | `reference/NAVIGATION.md` |
 | Verified example programs to adapt | `snippets/` |
 
