@@ -25,22 +25,22 @@ This file is the map + the safety summary; open the `reference/` file for depth.
 4. Before emitting motion/safety code, check the **Top gotchas** below.
 
 ## Reference routing
-| Need | File |
-|---|---|
-| Operators, variables (P/Q/M/L/I), flow control, on-line vs buffered commands | `reference/syntax-rules.md` |
-| `Structure[index].Element` model, Sys./Motor[]/Coord[]/Gate3[], SAVED/NON-SAVED/STATUS, I-var mapping | `reference/data-structure.md` |
-| Motion programs: `open prog`, move modes, axis def, coord systems, kinematics, lookahead, G-code | `reference/script-motion.md` |
-| PLC programs: `open plc`, scan model, timers, `cmd`, sequencing, idioms | `reference/script-plc.md` |
-| C: CPLC (real-time) vs capp (background), C API / pshm access, CfromScript, build/pp_proj | `reference/c-programming.md` |
-| **C API real signatures** (gplib.h: GetResponse/Command/GetPmacVar; RtGpShm.h pshm structs) | `reference/c-api.md` |
-| **Authoritative element list** (every `Structure.Element`, from firmware intellisense tables) | `reference/firmware/ELEMENTS_INDEX.md` + grep `reference/firmware/pp_swtbl*.txt` |
-| Pitfalls: task model, save/reset, units, motion safety, error IDs | `reference/gotchas.md` |
-| **Project structure**: folder layout, file types, `.ppproj` manifest, `pp_proj.ini` load order, on-controller `/var/ftp/usrflash/Project` mapping | `reference/project-structure.md` |
-| **IDE & motor bring-up**: IDE windows, system clocks, **local & EtherCAT motor setup**, PID tuning, jog params, homing (Gate3 capture / EtherCAT touch-probe), EtherCAT enable/reset; + MCP command mapping | `reference/setup-workflow.md` |
-| **Servo internals** (deep): encoder types/sub-count(1/T,arctangent)/ECT/EncLoss, commutation modes, phase referencing, sine vs Direct-PWM output | `reference/servo-internals.md` |
-| **Vendor course material** (deep-theory lectures + ODT training): topic→raw index; grep `reference/raw/edu/` for detail | `reference/lecture-series.md`, `reference/training-course.md` |
-| Domain → manual page map; how to regenerate the raw corpus | `reference/NAVIGATION.md` |
-| Verified example programs to adapt | `snippets/` |
+| Need                                                                                                                                                                                                        | File                                                                             |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Operators, variables (P/Q/M/L/I), flow control, on-line vs buffered commands                                                                                                                                | `reference/syntax-rules.md`                                                      |
+| `Structure[index].Element` model, Sys./Motor[]/Coord[]/Gate3[], SAVED/NON-SAVED/STATUS, I-var mapping                                                                                                       | `reference/data-structure.md`                                                    |
+| Motion programs: `open prog`, move modes, axis def, coord systems, kinematics, lookahead, G-code                                                                                                            | `reference/script-motion.md`                                                     |
+| PLC programs: `open plc`, scan model, timers, `cmd`, sequencing, idioms                                                                                                                                     | `reference/script-plc.md`                                                        |
+| C: CPLC (real-time) vs capp (background), C API / pshm access, CfromScript, build/pp_proj                                                                                                                   | `reference/c-programming.md`                                                     |
+| **C API real signatures** (gplib.h: GetResponse/Command/GetPmacVar; RtGpShm.h pshm structs)                                                                                                                 | `reference/c-api.md`                                                             |
+| **Authoritative element list** (every `Structure.Element`, from firmware intellisense tables)                                                                                                               | `reference/firmware/ELEMENTS_INDEX.md` + grep `reference/firmware/pp_swtbl*.txt` |
+| Pitfalls: task model, save/reset, units, motion safety, error IDs                                                                                                                                           | `reference/gotchas.md`                                                           |
+| **Project structure**: folder layout, file types, `.ppproj` manifest, `pp_proj.ini` load order, on-controller `/var/ftp/usrflash/Project` mapping                                                           | `reference/project-structure.md`                                                 |
+| **IDE & motor bring-up**: IDE windows, system clocks, **local & EtherCAT motor setup**, PID tuning, jog params, homing (Gate3 capture / EtherCAT touch-probe / **limit-find→home-sensor PLC**, `CaptCtrl` edge select, **real pos = `ActPos−HomePos`**), EtherCAT enable/reset; + MCP command mapping | `reference/setup-workflow.md`                                                    |
+| **Servo internals** (deep): encoder types/sub-count(1/T,arctangent)/ECT/EncLoss, commutation modes, phase referencing, sine vs Direct-PWM output                                                            | `reference/servo-internals.md`                                                   |
+| **Vendor course material** (deep-theory lectures + ODT training): topic→raw index; grep `reference/raw/edu/` for detail                                                                                     | `reference/lecture-series.md`, `reference/training-course.md`                    |
+| Domain → manual page map; how to regenerate the raw corpus                                                                                                                                                  | `reference/NAVIGATION.md`                                                        |
+| Verified example programs to adapt                                                                                                                                                                          | `snippets/`                                                                      |
 
 ## Mental model (what makes Power PMAC different)
 - **Everything is a named data-structure element**, not a raw register or I-variable.

@@ -79,8 +79,34 @@ Vars: `Motor[].HomeVel` (±), `JogTa`, `JogTs`, `HomeOffset`. Status: `HomeInPro
 1. Unlock Gate3 writes: `Sys.WpKey=$AAAAAAAA` (else writes silently ignored).
 2. `Gate3[0].Chan[0].CaptCtrl` (0–15 = flag/index, hi/lo combo) + `.CaptFlagSel`
    (0 home, 1 +limit, 2 −limit, 3 user).
-3. `#1hm` (or `HOME 1` in a program). Watch `HomeComplete` 0→1, `HomeInProgress` 1→0.
-- Index example: `CaptCtrl=1`. Flag(home-low) example: `CaptCtrl=10`, `CaptFlagSel=0`.
+3. `#1hm` (online) — or `home 1;` **inside a PLC buffer** (`home 1` as an online cmd = ILLEGAL CMD).
+   Watch `HomeComplete` 0→1, `HomeInProgress` 1→0.
+- **`CaptCtrl` (verified live)**: `1`=index(Z); `2`=selected flag **high / rising (0→1)**;
+  `10`=flag **low / falling (1→0)** (=2 with the +8 invert bit). Pick the edge to match the sensor.
+- **★ Real position = `Motor[x].ActPos − Motor[x].HomePos`, NOT raw `ActPos`.** Homing writes the captured
+  position into `HomePos`, so a good home reads `ActPos−HomePos ≈ 0` (or `HomeOffset`). raw ActPos is the
+  encoder's (possibly multi-turn) accumulated count — judging home success by it mistakes a correct home for
+  a fault. → [[ppmac-actpos-homepos]].
+- **Home flag can be a half-plane, not a point**: a real rig may drive the home input 0 across one half of
+  travel and 1 across the other (boundary = the home edge). Approach so the flag is in its *inactive* state at
+  the start and capture the transition (e.g. come from the − side where flag=0, move +, capture rising →
+  `CaptCtrl=2`). If the flag is already in the capture-active level at the start (e.g. flag-low `CaptCtrl=10`
+  while already on the low side), `#xhm` triggers immediately = false home at the start position.
+
+## Homing — limit-find then home-sensor (multi-stage PLC, verified live)
+Pattern the user asked for: jog −, confirm minus limit, reverse +, complete on the home sensor. Braces
+state-machine PLC (one per motor, independent; trigger all together with one var). Per motor:
+`jog-x` → minus-limit detected → stop → (settle) → `home x` / `jog+x` → home sensor → `homez x` or capture.
+- **Local motor with native limits set (`pLimits`≠0)**: hitting a HW limit **auto-aborts** the motor; a
+  `jog+`/`home` issued in the *very next* PLC scan gets **absorbed** (motor stays put). Insert a settle —
+  `Sys.CdTimer[i]=200` (ms) then wait `<=0` — before issuing the off-limit move. (A motor with native limits
+  *cleared* has no abort, so its off-limit `jog+` takes immediately — see EtherCAT case below.)
+- Read flags through the interpreted elements when `pLimits` is set: `Motor[x].MinusLimit`/`.PlusLimit`,
+  `CK3WAX[0].Chan[0].HomeFlag`. **Both limits reading 1 at once = un-wired/floating limit inputs** (open =
+  fail-safe active), not a real both-limit condition — characterize the sensor before trusting it.
+- `home x` (not `homez`) re-runs the configured capture (CaptCtrl/CaptFlagSel) while moving at `HomeVel`
+  (sign = direction); use it when you want hardware-captured precision. `homez x` just sets the present
+  position as home (HomeComplete=1, no move) — fine for a software-detected sensor edge.
 
 ## EtherCAT motor setup (e.g. OMRON 1S servo drive, NX-I/O)
 EtherCAT = real-time master/slave fieldbus. **DC** (Distributed Clock) syncs slaves to the servo
@@ -124,7 +150,16 @@ entries above (verified live on an OMRON 1S):
 
 ## EtherCAT limits & homing (pointers into PDO)
 - **Limits**: `Motor[n].pLimits = Slave_…_60FD_0_Digitalinputs.a`; `Motor[n].LimitBits`
-  (PMAC order is fixed NOT-POT; 1S → `0`).
+  (positive limit = bit `LimitBits`, negative limit = bit `LimitBits+1`).
+  **★ Verify the actual 60FD bit map per drive — don't assume.** On a live OMRON 1S the negative limit (NOT)
+  read as **bit 1** and the home/EXT1 input as **bit 17**, both active-high — *not* the nominal CiA bit0/bit2.
+  6M counts of − jog never lit the assumed bit2; the bit that actually toggled at the limit was the truth.
+- **Detect-in-PLC alternative**: leaving `pLimits=0` and bit-testing the DI in the PLC
+  (`if (ECAT[0].IO[<60FD>].Data & (1<<bit)) {...}`) avoids native limit-abort, so an off-limit `jog+x` takes
+  effect immediately (no settle needed, unlike a native-limit local motor). Complete with `homez x` on the
+  home-bit rising edge.
+- **online `jog/x` on an EtherCAT motor can return `MOTOR NOT ACTIVE`** — use the addressed form `#xj/`
+  instead. Inside a PLC buffer `jog/x` / `jog-x` / `home x;` work normally.
 - **Homing via drive touch-probe** (CiA402: `0x60B8` func / `0x60B9` status / `0x60BA` pos):
   `Motor[2].pCaptPos = Slave_…_60BA_…Touchprobepos1posvalue.a`,
   `Motor[2].pCaptFlag = Slave_…_60B9_…Touchprobestatus.a`, `CaptFlagBit=1`,
