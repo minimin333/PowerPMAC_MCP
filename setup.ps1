@@ -39,7 +39,7 @@ $ErrorActionPreference = 'Stop'
 try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch {}
 
 $Repo     = $PSScriptRoot
-$SkillSrc = Join-Path $Repo 'Skills\powerpmac-dev'
+$SkillSrc = Join-Path $Repo 'plugins\powerpmac-dev\skills\powerpmac-dev'
 $Csproj   = Join-Path $Repo 'mcp-server\PowerPmacMcp.csproj'
 $Exe      = Join-Path $Repo 'mcp-server\bin\Release\powerpmac-mcp.exe'
 $script:Compilers = $null

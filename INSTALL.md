@@ -5,6 +5,34 @@
 
 ---
 
+## 플러그인으로 설치 (권장 — 자동 업데이트, git pull 불필요)
+
+Skill 지식만 필요하면(코드 작성·리뷰) **Claude Code 플러그인 마켓플레이스**가 가장 간단하고,
+**`git pull` 없이 자동 업데이트**됩니다.
+
+```text
+/plugin marketplace add minimin333/PowerPMAC_MCP
+/plugin install powerpmac-dev@powerpmac
+```
+
+- **자동 업데이트 켜기**: `/plugin` → **Marketplaces** 탭 → `powerpmac` 선택 → auto-update 활성화.
+  third-party 마켓은 기본 off라 **1회만 켜면**, 이후 Claude Code 시작 시 자동 최신화(알림 후 `/reload-plugins`).
+- **팀 일괄 적용**: 프로젝트 `.claude/settings.json` 에 추가하면 팀원이 신뢰 수락 시 자동 등록·설치:
+  ```json
+  {
+    "extraKnownMarketplaces": {
+      "powerpmac": { "source": { "source": "github", "repo": "minimin333/PowerPMAC_MCP" }, "autoUpdate": true }
+    },
+    "enabledPlugins": { "powerpmac-dev@powerpmac": true }
+  }
+  ```
+- **수동 업데이트**: `/plugin update powerpmac-dev@powerpmac`.
+
+> 플러그인은 **Skill 지식**만 제공합니다. **라이브 컨트롤러 제어(MCP)** 까지 필요하면 아래 "Skill + MCP" 설치를
+> 쓰세요(MCP 빌드에 PDK 필요). 개발자(지식을 직접 편집)는 아래 `git clone` + `setup.ps1`(junction) 방식이 라이브 편집에 유리.
+
+---
+
 ## 전제 조건 (PC마다)
 | 항목 | 용도 | 없으면 |
 |---|---|---|
@@ -45,11 +73,14 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1 -SkillOnly
 - `claude mcp list` 에 `powerpmac` 표시 → "192.168.0.200에 프로젝트 빌드/다운로드해줘" 가능.
 
 ## 업데이트
-```powershell
-cd C:\Tools\PowerPMAC_MCP
-git pull
-powershell -ExecutionPolicy Bypass -File .\setup.ps1   # 재빌드·재등록(멱등)
-```
+- **플러그인 설치자**: auto-update를 켜뒀다면 **자동**. 수동은 `/plugin update powerpmac-dev@powerpmac`.
+  (git pull 불필요.)
+- **git clone + setup.ps1 설치자(MCP 포함/개발자)**:
+  ```powershell
+  cd C:\Tools\PowerPMAC_MCP
+  git pull
+  powershell -ExecutionPolicy Bypass -File .\setup.ps1   # 재빌드·재등록(멱등)
+  ```
 
 ---
 

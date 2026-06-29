@@ -7,10 +7,11 @@
 **/obj/
 
 # --- Skill: raw manual corpus + firmware originals (reproducible locally) ---
-/Skills/powerpmac-dev/reference/raw/
-/Skills/powerpmac-dev/reference/firmware/headers/
-/Skills/powerpmac-dev/reference/firmware/pp_swtbl*.txt
-/Skills/powerpmac-dev/reference/firmware/ppstruct*.txt
+# Path-independent (holds after the skill moves into the plugin layout).
+**/reference/raw/
+**/reference/firmware/headers/
+**/reference/firmware/pp_swtbl*.txt
+**/reference/firmware/ppstruct*.txt
 
 # --- misc ---
 *.user

@@ -1,0 +1,11 @@
+{
+  "name": "powerpmac-dev",
+  "description": "OMRON Delta Tau Power PMAC 개발 지식 스킬 — Script 모션 프로그램·PLC·C 프로그래밍, 데이터구조 요소(Sys./Motor[]/Coord[]/Gate3[]), IDE·로컬/EtherCAT 모터 셋업·호밍, 안전 gotchas. 공식 매뉴얼 한국어 정제본 + 라이브 컨트롤러 검증 패턴.",
+  "author": {
+    "name": "minimin333",
+    "url": "https://github.com/minimin333"
+  },
+  "homepage": "https://github.com/minimin333/PowerPMAC_MCP",
+  "repository": "https://github.com/minimin333/PowerPMAC_MCP",
+  "keywords": ["powerpmac", "pmac", "delta-tau", "omron", "motion-control", "ethercat", "sysmac", "cnc"]
+}
